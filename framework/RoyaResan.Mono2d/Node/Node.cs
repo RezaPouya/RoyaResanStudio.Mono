@@ -1,6 +1,7 @@
-﻿namespace RoyaResan.Mono2d.Node;
+﻿using RoyaResan.Mono2d.Components;
 
-using System.Collections.Generic;
+namespace RoyaResan.Mono2d.Node;
+
 
 public abstract class Node
 {
@@ -44,4 +45,27 @@ public abstract class Node
             _children[i].Draw();
         }
     }
+
+
+    private readonly List<Component> _components = new();
+
+    public T AddComponent<T>(T component) where T : Component
+    {
+        _components.Add(component);
+        component.Attach(this);
+        return component;
+    }
+
+    public T GetComponent<T>() where T : Component
+    {
+        return _components.OfType<T>().FirstOrDefault();
+    }
+
+    //public override void Update(float dt)
+    //{
+    //    foreach (var c in _components)
+    //        c.Update(dt);
+
+    //    base.Update(dt);
+    //}
 }
