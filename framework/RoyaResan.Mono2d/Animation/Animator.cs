@@ -19,9 +19,11 @@ public class Animator
         _player.Play(clip, restart);
     }
 
-    public void Update(float dt)
+    public void Update(GameTime gameTime)
     {
-        _clock.Update(dt);
+        //float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+        _clock.Update(gameTime);
         _player.Update(_clock);
     }
 

@@ -1,21 +1,22 @@
-﻿namespace RoyaResan.Mono2d.AI;
+﻿using Microsoft.Xna.Framework;
+using RoyaResan.Mono2d.Nodes;
+
+namespace RoyaResan.Mono2d.AI;
 
 public class Ai
 {
-    private AiStateMachine _stateMachine;
+    private readonly AiStateMachine _stateMachine;
+    private readonly TransformNode _owner;
 
-    public Ai(AiStateMachine stateMachine)
+    public Ai(TransformNode owner, AiStateMachine stateMachine)
     {
+        _owner = owner;
         _stateMachine = stateMachine;
     }
 
-    public void Update(float dt)
+    public void Update(GameTime gameTime)
     {
+        float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
         _stateMachine.Update(dt);
-    }
-
-    public void ChangeState(AiState newState)
-    {
-        _stateMachine.ChangeState(newState);
     }
 }

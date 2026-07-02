@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-
-using RoyaResan.Mono2d.Node;
+using RoyaResan.Mono2d.Nodes;
 
 namespace RoyaResan.Mono2d.Rendering;
 

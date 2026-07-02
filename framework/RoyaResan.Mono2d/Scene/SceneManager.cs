@@ -1,4 +1,6 @@
-﻿namespace RoyaResan.Mono2d.Scene;
+﻿using Microsoft.Xna.Framework;
+
+namespace RoyaResan.Mono2d.Scene;
 
 public class SceneManager
 {
@@ -7,15 +9,13 @@ public class SceneManager
     public void ChangeScene(Scene scene)
     {
         CurrentScene?.Unload();
-
         CurrentScene = scene;
-
         CurrentScene.Load();
     }
 
-    public void Update(float dt)
+    public void Update(GameTime gameTime)
     {
-        CurrentScene?.Update(dt);
+        CurrentScene?.Update(gameTime);
     }
 
     public void Draw(Rendering.Render renderer)

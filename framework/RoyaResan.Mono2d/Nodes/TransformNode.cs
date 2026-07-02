@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace RoyaResan.Mono2d.Node;
+namespace RoyaResan.Mono2d.Nodes;
 
 public class TransformNode : Node
 {

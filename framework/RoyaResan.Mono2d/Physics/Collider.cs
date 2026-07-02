@@ -1,10 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
+using RoyaResan.Mono2d.Nodes;
 
 namespace RoyaResan.Mono2d.Physics;
 
 public class Collider
 {
-    public Node.Node Owner;
+    public TransformNode Owner;
 
     public Rectangle Bounds;
 

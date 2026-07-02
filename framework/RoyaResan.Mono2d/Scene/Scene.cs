@@ -1,4 +1,5 @@
-﻿using RoyaResan.Mono2d.Node;
+﻿using Microsoft.Xna.Framework;
+using RoyaResan.Mono2d.Nodes;
 using RoyaResan.Mono2d.Rendering;
 
 namespace RoyaResan.Mono2d.Scene;
@@ -23,9 +24,12 @@ public class Scene
     // -----------------------------
     // UPDATE
     // -----------------------------
-    public virtual void Update(float dt)
+    public void Update(GameTime gameTime)
     {
-        NodeRoot.Update(dt);
+        if (NodeRoot == null)
+            return;
+
+        NodeRoot.Update(gameTime);
     }
 
     // -----------------------------
@@ -34,21 +38,17 @@ public class Scene
     public void CollectRenderables()
     {
         _renderQueue.Clear();
-
-        CollectSprites(NodeRoot);
+        if (NodeRoot != null)
+            CollectSprites(NodeRoot);
     }
 
     private void CollectSprites(Node node)
     {
         if (node is SpriteNode sprite)
-        {
             _renderQueue.Add(sprite);
-        }
 
         foreach (var child in node.Children)
-        {
             CollectSprites(child);
-        }
     }
 
     // -----------------------------
@@ -56,17 +56,20 @@ public class Scene
     // -----------------------------
     public void Draw(Render renderer)
     {
+        if (NodeRoot == null)
+            return;
+
         CollectRenderables();
 
         var sorted = _renderQueue
-            .OrderBy(s => s.GlobalPosition.Y) // 🔥 depth = Y-axis (classic 2.5D)
+            .OrderBy(s => s.GlobalPosition.Y)
             .ToList();
 
         renderer.Begin();
 
-        foreach (var sprite in sorted)
+        for (int i = 0; i < sorted.Count; i++)
         {
-            renderer.DrawSprite(sprite);
+            renderer.DrawSprite(sorted[i]);
         }
 
         renderer.End();
