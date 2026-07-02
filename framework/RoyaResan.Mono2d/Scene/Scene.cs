@@ -17,9 +17,11 @@ public class Scene
     // -----------------------------
     // LIFECYCLE
     // -----------------------------
-    public virtual void Load() { }
+    public virtual void Load()
+    { }
 
-    public virtual void Unload() { }
+    public virtual void Unload()
+    { }
 
     // -----------------------------
     // UPDATE

@@ -6,9 +6,10 @@ public abstract class ScriptNode : Node
 {
     private bool _started;
 
-    public virtual void Start() { }
+    public virtual void Start()
+    { }
 
-    public sealed override void Update(GameTime gameTime)
+    public override sealed void Update(GameTime gameTime)
     {
         if (!_started)
         {

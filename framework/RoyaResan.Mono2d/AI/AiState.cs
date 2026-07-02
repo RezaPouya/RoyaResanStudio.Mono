@@ -9,7 +9,12 @@ public abstract class AiState
         Context = context;
     }
 
-    public virtual void Enter() { }
-    public virtual void Update(float dt) { }
-    public virtual void Exit() { }
+    public virtual void Enter()
+    { }
+
+    public virtual void Update(float dt)
+    { }
+
+    public virtual void Exit()
+    { }
 }

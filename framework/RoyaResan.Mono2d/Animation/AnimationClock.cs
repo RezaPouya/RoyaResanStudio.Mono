@@ -10,8 +10,6 @@ public class AnimationClock
     public float DeltaTime { get; private set; }
     public float TotalTime { get; private set; }
 
-
-
     public void Update(GameTime gameTime)
     {
         if (IsPaused)

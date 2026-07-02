@@ -10,7 +10,8 @@ public class AudioClip
 
     public float Volume { get; set; } = 1f;
 
-    public AudioClip() { }
+    public AudioClip()
+    { }
 
     public AudioClip(SoundEffect sound)
     {
