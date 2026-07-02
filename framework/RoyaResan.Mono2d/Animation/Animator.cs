@@ -19,9 +19,9 @@ public class Animator
         _player.Play(clip, restart);
     }
 
-    public void Update(GameTime gameTime)
+    public void Update(float dt)
     {
-        _clock.Update(gameTime);
+        _clock.Update(dt);
         _player.Update(_clock);
     }
 

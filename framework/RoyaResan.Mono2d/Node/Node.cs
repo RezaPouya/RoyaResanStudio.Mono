@@ -13,6 +13,8 @@ public abstract class Node
 
     public IReadOnlyList<Node> Children => _children;
 
+    private readonly List<Component> _components = new();
+
     public virtual void AddChild(Node node)
     {
         if (node == null || node == this)
@@ -30,14 +32,6 @@ public abstract class Node
         }
     }
 
-    public virtual void Update(float dt)
-    {
-        for (int i = 0; i < _children.Count; i++)
-        {
-            _children[i].Update(dt);
-        }
-    }
-
     public virtual void Draw()
     {
         for (int i = 0; i < _children.Count; i++)
@@ -47,7 +41,7 @@ public abstract class Node
     }
 
 
-    private readonly List<Component> _components = new();
+
 
     public T AddComponent<T>(T component) where T : Component
     {
@@ -61,11 +55,12 @@ public abstract class Node
         return _components.OfType<T>().FirstOrDefault();
     }
 
-    //public override void Update(float dt)
-    //{
-    //    foreach (var c in _components)
-    //        c.Update(dt);
+    public virtual void Update(float dt)
+    {
+        for (int i = 0; i < _components.Count; i++)
+            _components[i].Update(dt);
 
-    //    base.Update(dt);
-    //}
+        for (int i = 0; i < _children.Count; i++)
+            _children[i].Update(dt);
+    }
 }

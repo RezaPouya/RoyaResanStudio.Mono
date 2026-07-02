@@ -1,6 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-
-namespace RoyaResan.Mono2d.Animation;
+﻿namespace RoyaResan.Mono2d.Animation;
 
 public class AnimationClock
 {
@@ -10,15 +8,13 @@ public class AnimationClock
     public float DeltaTime { get; private set; }
     public float TotalTime { get; private set; }
 
-    public void Update(GameTime gameTime)
+    public void Update(float dt)
     {
         if (IsPaused)
         {
-            DeltaTime = 0f;
+            DeltaTime = 0;
             return;
         }
-
-        float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
         DeltaTime = dt * TimeScale;
         TotalTime += DeltaTime;
