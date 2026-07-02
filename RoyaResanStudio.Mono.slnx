@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/framework/">
+    <Project Path="framework/RoyaResan.Mono2d/RoyaResan.Mono2d.csproj" Id="316232ac-fc7a-498b-a318-5a989780485f" />
+  </Folder>
+  <Folder Name="/games/" />
+  <Folder Name="/games/ChildernOfKaveh/" />
+  <Folder Name="/games/ShadowDancer/" />
+</Solution>
