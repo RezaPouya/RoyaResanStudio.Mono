@@ -4,5 +4,7 @@
   </Folder>
   <Folder Name="/games/" />
   <Folder Name="/games/ChildernOfKaveh/" />
-  <Folder Name="/games/ShadowDancer/" />
+  <Folder Name="/games/ShadowDancer/">
+    <Project Path="games/ShadowDancer/RoyaResan.ShadowDancer.Desktop/RoyaResan.ShadowDancer.Desktop.csproj" Id="0ea2dde2-fc98-4296-9133-986481c50e18" />
+  </Folder>
 </Solution>
