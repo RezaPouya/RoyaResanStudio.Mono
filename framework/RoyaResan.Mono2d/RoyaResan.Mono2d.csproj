@@ -12,10 +12,7 @@
 
 	<ItemGroup>
 	  <Folder Include="AI\" />
-	  <Folder Include="Animation\" />
 	  <Folder Include="Audio\" />
-	  <Folder Include="Gameplay\" />
-	  <Folder Include="Scene\" />
 	</ItemGroup>
 
 </Project>
