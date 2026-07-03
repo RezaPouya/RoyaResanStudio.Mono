@@ -64,7 +64,8 @@ public class World : Game
         player.AddChild(sprite);
 
         _scene.Root.AddChild(player);
-
+        _scene.Physics.Bodies.Add(player);
+        //_scene.Physics.Bodies.Add(wall);
         // CAMERA FOLLOW
         _scene.Camera.FollowTarget = player;
     }

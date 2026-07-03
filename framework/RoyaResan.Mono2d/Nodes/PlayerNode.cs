@@ -1,8 +1,20 @@
-﻿namespace RoyaResan.Mono2d.Nodes;
+﻿using RoyaResan.Mono2d.Physics;
 
-public class PlayerNode : TransformNode
+namespace RoyaResan.Mono2d.Nodes;
+
+public class PlayerNode : PhysicsBody
 {
     public float Speed = 200f;
+
+    public PlayerNode()
+    {
+        Collider = new Collider
+        {
+            Owner = this,
+            Size = new Vector2(32, 32),
+            IsStatic = false
+        };
+    }
 
     public override void Update(GameTime gameTime)
     {
@@ -10,22 +22,15 @@ public class PlayerNode : TransformNode
 
         Vector2 move = Vector2.Zero;
 
-        if (Input.IsKeyDown(Keys.W))
-            move.Y -= 1;
-
-        if (Input.IsKeyDown(Keys.S))
-            move.Y += 1;
-
-        if (Input.IsKeyDown(Keys.A))
-            move.X -= 1;
-
-        if (Input.IsKeyDown(Keys.D))
-            move.X += 1;
+        if (Input.IsKeyDown(Keys.W)) move.Y -= 1;
+        if (Input.IsKeyDown(Keys.S)) move.Y += 1;
+        if (Input.IsKeyDown(Keys.A)) move.X -= 1;
+        if (Input.IsKeyDown(Keys.D)) move.X += 1;
 
         if (move != Vector2.Zero)
             move.Normalize();
 
-        Position += move * Speed * dt;
+        Velocity = move * Speed;
 
         base.Update(gameTime);
     }

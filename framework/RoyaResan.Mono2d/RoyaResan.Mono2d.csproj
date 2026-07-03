@@ -15,7 +15,6 @@
 	  <Folder Include="Animation\" />
 	  <Folder Include="Audio\" />
 	  <Folder Include="Gameplay\" />
-	  <Folder Include="Physics\" />
 	  <Folder Include="Scene\" />
 	</ItemGroup>
 
