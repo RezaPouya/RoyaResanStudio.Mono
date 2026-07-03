@@ -23,7 +23,7 @@ public class Scene
     {
         Root.Update(gameTime);
         Physics.Step();
-        Camera.Update();
+        Camera.Update(gameTime);
     }
 
     public void Draw(Renderer renderer)
