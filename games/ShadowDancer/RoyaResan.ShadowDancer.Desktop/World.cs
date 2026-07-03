@@ -1,52 +1,75 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using RoyaResan.Mono2d.Core;
+using RoyaResan.Mono2d.Graphics;
+using RoyaResan.Mono2d.Nodes;
 
-namespace RoyaResan.ShadowDancer.Desktop
+namespace RoyaResan.ShadowDancer.Desktop;
+
+public class World : Game
 {
-    public class World : Game
+    private GraphicsDeviceManager _graphics;
+    private Renderer _renderer;
+
+    private Scene _scene;
+    private Texture2D _testTexture;
+
+    public World()
     {
-        private GraphicsDeviceManager _graphics;
-        private SpriteBatch _spriteBatch;
+        _graphics = new GraphicsDeviceManager(this);
+        Content.RootDirectory = "Content";
+        IsMouseVisible = true;
+    }
 
-        public World()
+    protected override void Initialize()
+    {
+        // TODO: Add your initialization logic here
+
+        base.Initialize();
+    }
+
+    protected override void LoadContent()
+    {
+        var spriteBatch = new SpriteBatch(GraphicsDevice);
+        _renderer = new Renderer(spriteBatch);
+
+        // Load a test texture (put a PNG in Content folder)
+        _testTexture = Content.Load<Texture2D>("test");
+
+        // Create scene
+        _scene = new Scene();
+
+        // Create sprite node
+        var sprite = new SpriteNode
         {
-            _graphics = new GraphicsDeviceManager(this);
-            Content.RootDirectory = "Content";
-            IsMouseVisible = true;
-        }
+            Texture = _testTexture,
+            Position = new Vector2(100, 100)
+        };
 
-        protected override void Initialize()
-        {
-            // TODO: Add your initialization logic here
+        _scene.Root.AddChild(sprite);
+    }
 
-            base.Initialize();
-        }
+    protected override void Update(GameTime gameTime)
+    {
+        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            Exit();
 
-        protected override void LoadContent()
-        {
-            _spriteBatch = new SpriteBatch(GraphicsDevice);
+        _scene.Update(gameTime);
 
-            // TODO: use this.Content to load your game content here
-        }
+        base.Update(gameTime);
+    }
 
-        protected override void Update(GameTime gameTime)
-        {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
+    protected override void Draw(GameTime gameTime)
+    {
+        GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            // TODO: Add your update logic here
+        _renderer.Begin();
 
-            base.Update(gameTime);
-        }
+        _scene.Draw(_renderer);
 
-        protected override void Draw(GameTime gameTime)
-        {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+        _renderer.End();
 
-            // TODO: Add your drawing code here
-
-            base.Draw(gameTime);
-        }
+        base.Draw(gameTime);
     }
 }
