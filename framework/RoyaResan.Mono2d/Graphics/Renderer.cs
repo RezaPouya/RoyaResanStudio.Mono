@@ -4,6 +4,8 @@ public class Renderer
 {
     private readonly SpriteBatch _spriteBatch;
 
+    public Camera2D Camera;
+
     public Renderer(SpriteBatch spriteBatch)
     {
         _spriteBatch = spriteBatch;
@@ -21,6 +23,9 @@ public class Renderer
 
     public void DrawTexture(Texture2D texture, Vector2 position, Color color)
     {
+        if (Camera != null)
+            position = Camera.WorldToScreen(position);
+
         _spriteBatch.Draw(texture, position, color);
     }
 }
