@@ -21,6 +21,9 @@
             if (a.Collider == null || b.Collider == null)
                 return;
 
+            if (a.IsStatic && b.IsStatic)
+                return;
+
             Rectangle A = a.Collider.Bounds;
             Rectangle B = b.Collider.Bounds;
 
@@ -29,24 +32,45 @@
 
             Rectangle intersection = Rectangle.Intersect(A, B);
 
-            // simple separation axis (minimal resolution)
+            // Static bodies never move; if both are dynamic, split the push.
+            float aShare = a.IsStatic ? 0f : (b.IsStatic ? 1f : 0.5f);
+            float bShare = b.IsStatic ? 0f : (a.IsStatic ? 1f : 0.5f);
+
             if (intersection.Width < intersection.Height)
             {
                 float push = intersection.Width;
+                bool aLeft = A.Center.X < B.Center.X;
 
-                if (A.Center.X < B.Center.X)
-                    a.Position.X -= push;
-                else
-                    a.Position.X += push;
+                if (!a.IsStatic)
+                {
+                    a.Position.X += aLeft ? -push * aShare : push * aShare;
+                    if (aLeft && a.Velocity.X > 0) a.Velocity.X = 0;
+                    if (!aLeft && a.Velocity.X < 0) a.Velocity.X = 0;
+                }
+                if (!b.IsStatic)
+                {
+                    b.Position.X += aLeft ? push * bShare : -push * bShare;
+                    if (aLeft && b.Velocity.X < 0) b.Velocity.X = 0;
+                    if (!aLeft && b.Velocity.X > 0) b.Velocity.X = 0;
+                }
             }
             else
             {
                 float push = intersection.Height;
+                bool aAbove = A.Center.Y < B.Center.Y;
 
-                if (A.Center.Y < B.Center.Y)
-                    a.Position.Y -= push;
-                else
-                    a.Position.Y += push;
+                if (!a.IsStatic)
+                {
+                    a.Position.Y += aAbove ? -push * aShare : push * aShare;
+                    if (aAbove && a.Velocity.Y > 0) a.Velocity.Y = 0;
+                    if (!aAbove && a.Velocity.Y < 0) a.Velocity.Y = 0;
+                }
+                if (!b.IsStatic)
+                {
+                    b.Position.Y += aAbove ? push * bShare : -push * bShare;
+                    if (aAbove && b.Velocity.Y < 0) b.Velocity.Y = 0;
+                    if (!aAbove && b.Velocity.Y > 0) b.Velocity.Y = 0;
+                }
             }
         }
     }

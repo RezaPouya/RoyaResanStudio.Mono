@@ -1,11 +1,13 @@
 ﻿using RoyaResan.Mono2d.Physics;
 
-public class WallNode : TransformNode
-{
-    public Collider Collider;
+namespace RoyaResan.Mono2d.Nodes;
 
+public class WallNode : PhysicsBody
+{
     public WallNode()
     {
+        IsStatic = true;
+
         Collider = new Collider
         {
             Owner = this,

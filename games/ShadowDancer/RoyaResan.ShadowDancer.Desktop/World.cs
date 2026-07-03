@@ -81,7 +81,7 @@ public class World : Game
         // -------------------------
         // SCENE ATTACH
         // -------------------------
-        _scene.Root.AddChild(player);
+        _scene.AddBody(player);
 
         // Camera follow
         _scene.Camera.FollowTarget = player;
