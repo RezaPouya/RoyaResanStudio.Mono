@@ -1,4 +1,5 @@
 ﻿using RoyaResan.Mono2d.Physics;
+using RoyaResan.Mono2d.Combat;
 
 namespace RoyaResan.Mono2d.Core;
 
@@ -7,6 +8,7 @@ public class Scene
     public SceneNode Root = new SceneNode();
     public Camera2D Camera = new Camera2D();
     public PhysicsWorld Physics = new PhysicsWorld();
+    public CombatWorld Combat = new CombatWorld();
 
     /// <summary>
     /// Adds a body to the node tree AND registers it with the physics
@@ -19,10 +21,15 @@ public class Scene
         Physics.Bodies.Add(body);
     }
 
+    public void AddHitbox(Hitbox hitbox) => Combat.Hitboxes.Add(hitbox);
+    public void AddHurtbox(Hurtbox hurtbox) => Combat.Hurtboxes.Add(hurtbox);
+    public void AddRope(Rope rope) => Physics.Ropes.Add(rope);
+
     public void Update(GameTime gameTime)
     {
         Root.Update(gameTime);
         Physics.Step();
+        Combat.Step();
         Camera.Update(gameTime);
     }
 

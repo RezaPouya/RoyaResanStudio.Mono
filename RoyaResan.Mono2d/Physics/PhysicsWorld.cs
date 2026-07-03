@@ -3,9 +3,13 @@
     public class PhysicsWorld
     {
         public List<PhysicsBody> Bodies = new();
+        public List<Rope> Ropes = new();
 
         public void Step()
         {
+            foreach (var rope in Ropes)
+                rope.Step();
+
             // Naive O(n²) collision check
             for (int i = 0; i < Bodies.Count; i++)
             {

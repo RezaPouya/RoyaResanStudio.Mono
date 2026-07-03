@@ -1,0 +1,41 @@
+﻿namespace RoyaResan.Mono2d.Combat;
+
+/// <summary>
+/// An attack region attached to a PhysicsBody. Deliberately NOT the same
+/// as Physics.Collider - a hitbox never pushes anything apart, it only
+/// detects overlap with a Hurtbox. Gameplay code (an attack script, driven
+/// by the Animator) turns Active on/off for the attack's active frames.
+/// </summary>
+public class Hitbox
+{
+    public PhysicsBody Owner;
+
+    /// <summary>Offset from Owner.GlobalPosition, so it can sit in front of/around the entity.</summary>
+    public Vector2 Offset;
+    public Vector2 Size;
+
+    public int Damage = 10;
+
+    /// <summary>Only checked for overlap while true - set by the attack script during active frames.</summary>
+    public bool Active;
+
+    // Prevents one active swing from hitting the same target every frame
+    // it stays overlapping - cleared each time the swing (re)starts.
+    private readonly HashSet<Hurtbox> _hitThisSwing = new();
+
+    public void BeginSwing() => _hitThisSwing.Clear();
+
+    public bool HasHit(Hurtbox target) => _hitThisSwing.Contains(target);
+    public void MarkHit(Hurtbox target) => _hitThisSwing.Add(target);
+
+    public Rectangle GetBounds()
+    {
+        if (Owner == null)
+            return Rectangle.Empty;
+
+        Vector2 pos = Owner.GlobalPosition + Offset;
+        return new Rectangle(
+            (int)(pos.X - Size.X / 2f), (int)(pos.Y - Size.Y / 2f),
+            (int)Size.X, (int)Size.Y);
+    }
+}
