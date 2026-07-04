@@ -10,6 +10,13 @@
             foreach (var rope in Ropes)
                 rope.Step();
 
+            // Cleared before resolving - Resolve()/ResolveOneWay() set it
+            // back to true for whatever's actually resting on something
+            // this step.
+            foreach (var body in Bodies)
+                if (!body.IsStatic)
+                    body.IsGrounded = false;
+
             // Naive O(n²) collision check
             for (int i = 0; i < Bodies.Count; i++)
             {
@@ -80,14 +87,22 @@
                 if (!a.IsStatic)
                 {
                     a.Position.Y += aAbove ? -push * aShare : push * aShare;
-                    if (aAbove && a.Velocity.Y > 0) a.Velocity.Y = 0;
+                    if (aAbove && a.Velocity.Y > 0)
+                    {
+                        a.Velocity.Y = 0;
+                        a.IsGrounded = true; // a was falling, landed on top of b
+                    }
                     if (!aAbove && a.Velocity.Y < 0) a.Velocity.Y = 0;
                 }
                 if (!b.IsStatic)
                 {
                     b.Position.Y += aAbove ? push * bShare : -push * bShare;
                     if (aAbove && b.Velocity.Y < 0) b.Velocity.Y = 0;
-                    if (!aAbove && b.Velocity.Y > 0) b.Velocity.Y = 0;
+                    if (!aAbove && b.Velocity.Y > 0)
+                    {
+                        b.Velocity.Y = 0;
+                        b.IsGrounded = true; // b was falling, landed on top of a
+                    }
                 }
             }
         }
@@ -114,6 +129,7 @@
 
             passer.Position.Y = platformBounds.Top - passerHalfHeight;
             passer.Velocity.Y = 0f;
+            passer.IsGrounded = true;
         }
     }
 }

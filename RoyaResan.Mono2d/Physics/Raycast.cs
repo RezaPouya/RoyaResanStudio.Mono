@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace RoyaResan.Mono2d.Physics;
+﻿namespace RoyaResan.Mono2d.Physics;
 
 public struct RaycastHit
 {
@@ -105,9 +103,10 @@ public static class Raycast
     }
 
     /// <summary>Same edge-by-edge test as SegmentIntersectsRect, but also returns the closest intersection point (or the origin, if it starts inside the rect).</summary>
-    private static bool SegmentIntersectsRectWithPoint(Vector2 p1, Vector2 p2, Rectangle rect, out Vector2 point)
+    private static bool SegmentIntersectsRectWithPoint(
+      Vector2 p1, Vector2 p2, Rectangle rect, out Vector2 point)
     {
-        point = default;
+        Vector2 result = default;
         float closestDistSq = float.MaxValue;
         bool found = false;
 
@@ -117,7 +116,7 @@ public static class Raycast
             if (d < closestDistSq)
             {
                 closestDistSq = d;
-                point = candidate;
+                result = candidate;
                 found = true;
             }
         }
@@ -125,16 +124,17 @@ public static class Raycast
         if (rect.Contains(p1.ToPoint()))
             TryCandidate(p1);
 
-        Vector2 tl = new Vector2(rect.Left, rect.Top);
-        Vector2 tr = new Vector2(rect.Right, rect.Top);
-        Vector2 bl = new Vector2(rect.Left, rect.Bottom);
-        Vector2 br = new Vector2(rect.Right, rect.Bottom);
+        Vector2 tl = new(rect.Left, rect.Top);
+        Vector2 tr = new(rect.Right, rect.Top);
+        Vector2 bl = new(rect.Left, rect.Bottom);
+        Vector2 br = new(rect.Right, rect.Bottom);
 
         if (SegmentsIntersectPoint(p1, p2, tl, tr, out var pt1)) TryCandidate(pt1);
         if (SegmentsIntersectPoint(p1, p2, tr, br, out var pt2)) TryCandidate(pt2);
         if (SegmentsIntersectPoint(p1, p2, br, bl, out var pt3)) TryCandidate(pt3);
         if (SegmentsIntersectPoint(p1, p2, bl, tl, out var pt4)) TryCandidate(pt4);
 
+        point = result;
         return found;
     }
 

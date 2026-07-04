@@ -1,5 +1,6 @@
 ﻿using RoyaResan.Mono2d.Physics;
 using RoyaResan.Mono2d.Combat;
+using RoyaResan.Mono2d.UI;
 
 namespace RoyaResan.Mono2d.Core;
 
@@ -9,6 +10,9 @@ public class Scene
     public Camera2D Camera = new Camera2D();
     public PhysicsWorld Physics = new PhysicsWorld();
     public CombatWorld Combat = new CombatWorld();
+
+    /// <summary>Screen-space UI overlay (pause menu, HUD, dialogs). Always updated/drawn, paused or not - see IsPaused.</summary>
+    public UiManager Ui = new UiManager();
 
     /// <summary>
     /// Adds a body to the node tree AND registers it with the physics
@@ -25,17 +29,46 @@ public class Scene
     public void AddHurtbox(Hurtbox hurtbox) => Combat.Hurtboxes.Add(hurtbox);
     public void AddRope(Rope rope) => Physics.Ropes.Add(rope);
 
+    /// <summary>
+    /// Hard-pauses gameplay: while true, Update() no-ops entirely - no node
+    /// updates (so no scripts, no AI, no animation), no physics step, no
+    /// combat step, no camera update (so screen shake also freezes rather
+    /// than continuing under a paused game). Draw() is unaffected and
+    /// always runs, so the last simulated frame stays visible underneath
+    /// a pause menu.
+    ///
+    /// This is a full stop, not a time-scale slowdown - there's no partial
+    /// "everything moves at half speed" here. If you later want hit-stop
+    /// or bullet-time, that's a different, smaller feature (a float
+    /// TimeScale multiplied into each dt) - don't reach for IsPaused for it.
+    ///
+    /// Toggling and drawing whatever pause UI you show is entirely up to
+    /// game code - Scene only owns the freeze. See PauseExample.cs.
+    /// </summary>
+    public bool IsPaused;
+
     public void Update(GameTime gameTime)
     {
-        Root.Update(gameTime);
-        Physics.Step();
-        Combat.Step();
-        Camera.Update(gameTime);
+        if (!IsPaused)
+        {
+            Root.Update(gameTime);
+            Physics.Step();
+            Combat.Step();
+            Camera.Update(gameTime);
+        }
+
+        // UI always updates - a pause menu needs to keep receiving clicks
+        // while gameplay itself is frozen.
+        Ui.Update(gameTime);
     }
 
     public void Draw(Renderer renderer)
     {
         renderer.Camera = Camera;
         Root.Draw(renderer);
+
+        // UI draw methods ignore Camera by design (see Renderer) - drawn
+        // last so it renders on top of the world.
+        Ui.Draw(renderer);
     }
 }

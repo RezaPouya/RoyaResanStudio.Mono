@@ -10,6 +10,19 @@ namespace RoyaResan.Mono2d.Physics
 
         public bool IsStatic = false;
 
+        /// <summary>
+        /// True for one physics step if this body is resting on top of
+        /// something solid (a normal collider it fell onto, or an active
+        /// catch on a one-way platform). Set by PhysicsWorld each Step,
+        /// reset to false at the start of the next Step before collisions
+        /// are resolved - so it always reflects "was I grounded as of the
+        /// last physics step," one frame behind, same as the rest of this
+        /// engine's resolve-then-consume-next-frame pattern (see
+        /// PreviousPosition). Meant to be read by movement scripts
+        /// (coyote time, jump gating) - not meant to be set by gameplay code.
+        /// </summary>
+        public bool IsGrounded;
+
         /// <summary>Off by default - existing top-down movement (e.g. PlayerMovementScript) is unaffected unless opted in.</summary>
         public bool UseGravity = false;
 
