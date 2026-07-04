@@ -32,6 +32,9 @@ public class CombatWorld
                 if (hurtbox.Owner == null || hurtbox.Owner == hitbox.Owner)
                     continue; // no self-hit
 
+                if (hurtbox.Invulnerable)
+                    continue; // i-frames - e.g. mid-roll, per HurtboxProfile
+
                 if (hitbox.HasHit(hurtbox))
                     continue; // already resolved this swing
 

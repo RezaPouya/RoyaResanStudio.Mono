@@ -21,6 +21,16 @@ public class Hurtbox
 
     public bool IsParrying;
 
+    /// <summary>
+    /// While true, this hurtbox is skipped entirely by CombatWorld.Step -
+    /// no damage, no parry, nothing (i-frames). Distinct from IsParrying:
+    /// a parry can still be countered/read by other systems, invulnerable
+    /// means "not there" as far as combat is concerned. Meant to be driven
+    /// by a HurtboxProfile (e.g. true during a roll's active frames), same
+    /// pattern as IsParrying being driven by ParryScript.
+    /// </summary>
+    public bool Invulnerable;
+
     /// <summary>Fires on the defender when they successfully parry an incoming hitbox.</summary>
     public event Action<Hitbox> OnParried;
 
