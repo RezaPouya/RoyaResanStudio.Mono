@@ -6,6 +6,13 @@ public class Collider
 
     public bool IsStatic = false;
 
+    /// <summary>
+    /// One-way platform: only blocks a body falling onto it from above.
+    /// A body moving upward, or already below the platform, passes
+    /// straight through - see PhysicsWorld.ResolveOneWay.
+    /// </summary>
+    public bool IsOneWay = false;
+
     public TransformNode Owner;
 
     public Rectangle Bounds

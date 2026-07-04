@@ -18,6 +18,10 @@
                     Resolve(Bodies[i], Bodies[j]);
                 }
             }
+
+            // Cache resolved positions for next frame's one-way platform checks.
+            foreach (var body in Bodies)
+                body.PreviousPosition = body.Position;
         }
 
         private void Resolve(PhysicsBody a, PhysicsBody b)
@@ -33,6 +37,16 @@
 
             if (!A.Intersects(B))
                 return;
+
+            // One-way platform: exactly one side is marked IsOneWay -
+            // handle it separately, it never uses the normal push-apart.
+            if (a.Collider.IsOneWay != b.Collider.IsOneWay)
+            {
+                var platform = a.Collider.IsOneWay ? a : b;
+                var passer = a.Collider.IsOneWay ? b : a;
+                ResolveOneWay(platform, passer);
+                return;
+            }
 
             Rectangle intersection = Rectangle.Intersect(A, B);
 
@@ -76,6 +90,30 @@
                     if (!aAbove && b.Velocity.Y > 0) b.Velocity.Y = 0;
                 }
             }
+        }
+
+        /// <summary>
+        /// Only catches a body that was fully above the platform last
+        /// frame AND is moving downward - lets it be jumped up through
+        /// from below, walked through from the side, or dropped through
+        /// once already past it, exactly like a standard one-way platform.
+        /// </summary>
+        private void ResolveOneWay(PhysicsBody platform, PhysicsBody passer)
+        {
+            if (passer.IsStatic || passer.Velocity.Y < 0f)
+                return;
+
+            Rectangle platformBounds = platform.Collider.Bounds;
+            float passerHalfHeight = passer.Collider.Size.Y / 2f;
+            float prevBottom = passer.PreviousPosition.Y + passerHalfHeight;
+
+            // Small tolerance avoids missing a catch due to float rounding
+            // right at the boundary.
+            if (prevBottom > platformBounds.Top + 1f)
+                return;
+
+            passer.Position.Y = platformBounds.Top - passerHalfHeight;
+            passer.Velocity.Y = 0f;
         }
     }
 }

@@ -109,5 +109,11 @@ namespace RoyaResan.Mono2d.Graphics
         {
             return worldPosition - Position - _shakeOffset;
         }
+
+        /// <summary>Inverse of WorldToScreen - needed to aim at the mouse (e.g. RopeController.TryFireAtMouse).</summary>
+        public Vector2 ScreenToWorld(Vector2 screenPosition)
+        {
+            return screenPosition + Position + _shakeOffset;
+        }
     }
 }
