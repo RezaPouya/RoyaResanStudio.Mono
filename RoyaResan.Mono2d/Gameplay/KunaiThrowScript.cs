@@ -24,8 +24,8 @@ public class KunaiThrowScript : Script
     public PlatformerMovementScript Movement;
     public Animator Animator;
 
-    public Keys ThrowKey = Keys.K;
 
+    public int Damage = 3;
     public int Ammo = 100;
     public int MaxAmmo = 200;
 
@@ -76,15 +76,23 @@ public class KunaiThrowScript : Script
         bool facingRight = Movement?.FacingRight ?? true;
 
         var kunaiBody = new PhysicsBody { UseGravity = false };
-        //kunaiBody.Position = Owner.Position + new Vector2(facingRight ? 18f : -18f, -6f);
-        kunaiBody.Position = Owner.Position + new Vector2(facingRight ? 25f : -25f, -6f);  // Was 18f → safer offset
+        kunaiBody.Position = Owner.Position + new Vector2(facingRight ? 25f : -25f, -6f);
 
         kunaiBody.Collider = new Collider { Owner = kunaiBody, Size = new Vector2(10f, 6f) };
 
         var visual = new PlaceholderRectNode { Size = new Vector2(10f, 6f), Color = Color.DarkSlateGray };
         kunaiBody.AddChild(visual);
 
-        var hitbox = new Hitbox { Owner = kunaiBody, Damage = 2, Size = new Vector2(10f, 6f), Tag = "Kunai" };
+        var hitbox = new Hitbox
+        {
+            Owner = kunaiBody,
+            Damage = 3,
+            Size = new Vector2(10f, 6f),
+            Tag = "Kunai"
+        };
+
+        // Remember the real owner (player) so damage events know who attacked
+        kunaiBody.UserData = Owner;
 
         Scene.AddBody(kunaiBody);
         Scene.AddHitbox(hitbox);

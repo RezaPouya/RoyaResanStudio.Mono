@@ -11,6 +11,11 @@ namespace RoyaResan.Mono2d.Physics
         public bool IsStatic = false;
 
         /// <summary>
+        /// Optional user-defined data. Useful for projectiles to remember their real owner (the player).
+        /// </summary>
+        public object UserData;
+
+        /// <summary>
         /// True for one physics step if this body is resting on top of
         /// something solid (a normal collider it fell onto, or an active
         /// catch on a one-way platform). Set by PhysicsWorld each Step,

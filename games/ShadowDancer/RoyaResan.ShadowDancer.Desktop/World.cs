@@ -21,7 +21,6 @@ public class World : Game
     private GraphicsDeviceManager _graphics;
     private Renderer _renderer;
 
-
     private Scene _scene;
 
     // Kept around so other systems (HUD, later phases) can read them
@@ -96,7 +95,6 @@ public class World : Game
     // playtested before a real Tiled level exists. Delete this method
     // (and its call above) once Level 1 loads from Tiled instead.
     // -----------------------------------------------------------------
-    // In BuildTemporaryTestFloor() - expanded for walls/floor solidity
     private void BuildTemporaryTestFloor()
     {
         // Floor
@@ -135,7 +133,7 @@ public class World : Game
     // -----------------------------------------------------------------
     private void BuildPlayer()
     {
-        _player = new PhysicsBody();
+        _player = new PhysicsBody { Team = "Player" };
         _player.Position = new Vector2(250, 250);
 
         _player.Collider = new Collider
@@ -177,7 +175,7 @@ public class World : Game
         _scene.AddHurtbox(hurtbox);
 
         // --- sword ---
-        var swordHitbox = new Hitbox { Owner = _player, Damage = 1, Tag = "Sword" };
+        var swordHitbox = new Hitbox { Owner = _player, Damage = 2, Tag = "Sword" };
         _scene.AddHitbox(swordHitbox);
 
         _playerSword = new SwordAttackScript
@@ -277,9 +275,9 @@ public class World : Game
     /// Build*Enemy method on top of what this returns.
     /// </summary>
     private (PhysicsBody body, Health health, Hurtbox hurtbox, EnemyFsm fsm, Animator animator) BuildEnemyBase(
-        Vector2 position, Vector2 size, int maxHealth, Color color)
+     Vector2 position, Vector2 size, int maxHealth, Color color)
     {
-        var body = new PhysicsBody { Position = position, UseGravity = true };
+        var body = new PhysicsBody { Position = position, UseGravity = true, Team = "Enemy" };
         body.Collider = new Collider { Owner = body, Size = size };
 
         var visual = new PlaceholderRectNode { Size = size, Color = color };
@@ -302,6 +300,15 @@ public class World : Game
 
         body.AddScript(new EnemyFsmScript { Fsm = fsm });
 
+        // World-space health bar above enemy (now after health is declared)
+        var healthBarBg = new PlaceholderRectNode { Size = new Vector2(32, 4), Color = Color.Black, Position = new Vector2(0, -size.Y / 2 - 10) };
+        var healthBarFill = new PlaceholderRectNode { Size = new Vector2(30, 2), Color = Color.Lime, Position = new Vector2(0, -size.Y / 2 - 10) };
+        body.AddChild(healthBarBg);
+        body.AddChild(healthBarFill);
+
+        // Script to update health bar
+        body.AddScript(new EnemyHealthBarScript { Health = health, Fill = healthBarFill, Bg = healthBarBg });
+
         _scene.AddBody(body);
 
         return (body, health, hurtbox, fsm, animator);
@@ -322,7 +329,15 @@ public class World : Game
         fsm.AddState("Attack", new AttackState { Hitbox = meleeHitbox, AttackRange = 30f, AttackDuration = 0.4f, ActiveWindowStart = 0.12f, ActiveWindowEnd = 0.25f });
         fsm.AddState("Stagger", new StaggerState { Duration = 0.3f, RecoverToState = "Chase" });
 
-        health.OnDamaged += (_, _) => { if (!health.IsDead) fsm.ChangeState("Stagger"); };
+        health.OnDamaged += (amount, source) =>
+        {
+            if (!health.IsDead)
+            {
+                if (source != null && source.Team == "Player")
+                    _enemyGroup.RaiseAlert(source);
+                fsm.ChangeState("Stagger");
+            }
+        };
 
         fsm.ChangeState("Idle", force: true);
     }
@@ -337,7 +352,15 @@ public class World : Game
         fsm.AddState("RangedAttack", new RangedAttackState { Vision = vision, FireInterval = 2f, ProjectileSpeed = 350f, Damage = 1 });
         fsm.AddState("Stagger", new StaggerState { Duration = 0.3f, RecoverToState = "Idle" });
 
-        health.OnDamaged += (_, _) => { if (!health.IsDead) fsm.ChangeState("Stagger"); };
+        health.OnDamaged += (amount, source) =>
+        {
+            if (!health.IsDead)
+            {
+                if (source != null && source.Team == "Player")
+                    _enemyGroup.RaiseAlert(source);
+                fsm.ChangeState("Stagger");
+            }
+        };
 
         fsm.ChangeState("Idle", force: true);
     }
@@ -357,8 +380,17 @@ public class World : Game
         fsm.AddState("Attack", new AttackState { Hitbox = spearHitbox, AttackRange = 48f, AttackDuration = 0.6f, ActiveWindowStart = 0.2f, ActiveWindowEnd = 0.4f });
         fsm.AddState("Stagger", new StaggerState { Duration = 0.4f, RecoverToState = "Chase" });
 
-        health.OnDamaged += (_, _) => { if (!health.IsDead) fsm.ChangeState("Stagger"); };
+        health.OnDamaged += (amount, source) =>
+        {
+            if (!health.IsDead)
+            {
+                if (source != null && source.Team == "Player")
+                    _enemyGroup.RaiseAlert(source);
+                fsm.ChangeState("Stagger");
+            }
+        };
 
+        // Shield blocks SWORD but allows KUNAI
         body.AddScript(new ShieldBlockScript { Fsm = fsm, Hurtbox = hurtbox, Player = _player });
 
         fsm.ChangeState("Idle", force: true);
@@ -386,7 +418,6 @@ public class World : Game
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
         _renderer.Begin();
-
 
         _scene.Draw(_renderer);
 

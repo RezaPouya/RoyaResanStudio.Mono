@@ -55,7 +55,9 @@ public class CombatWorld
                 }
                 else
                 {
-                    hurtbox.Health?.Damage(hitbox.Damage, hitbox.Owner);
+                    // Use UserData if available (for projectiles), otherwise use hitbox.Owner
+                    var damageSource = hitbox.Owner.UserData as PhysicsBody ?? hitbox.Owner;
+                    hurtbox.Health?.Damage(hitbox.Damage, damageSource);
                     OnHit?.Invoke(hitbox, hurtbox);
                 }
             }
