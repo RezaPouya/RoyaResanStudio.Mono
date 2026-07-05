@@ -25,7 +25,7 @@ public class KunaiThrowScript : Script
     public Animator Animator;
 
 
-    public int Damage = 3;
+    public int Damage = 1;
     public int Ammo = 100;
     public int MaxAmmo = 200;
 

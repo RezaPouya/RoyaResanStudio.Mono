@@ -21,9 +21,25 @@ public class CombatWorld
         foreach (var hitbox in Hitboxes)
         {
             if (!hitbox.Active || hitbox.Owner == null)
+            {
+                // Keep an inactive hitbox's sweep anchor current so that
+                // when it goes Active again without a fresh BeginSwing()
+                // (shouldn't normally happen, but cheap insurance) it
+                // doesn't sweep in from a long-stale position.
+                if (hitbox.Owner != null)
+                    hitbox.CommitPreviousCenter();
                 continue;
+            }
 
-            var hitboxBounds = hitbox.GetBounds();
+            Vector2 currentCenter = hitbox.GetCenter();
+            Vector2 sweepStart = hitbox.PreviousCenter;
+
+            // Guard against a huge, spurious sweep (e.g. Offset flipping
+            // instantly when facing reverses mid-swing) - fall back to a
+            // point check at the current position instead of drawing a
+            // long line across everything in between.
+            if (Vector2.Distance(sweepStart, currentCenter) > hitbox.MaxSweepDistance)
+                sweepStart = currentCenter;
 
             foreach (var hurtbox in Hurtboxes)
             {
@@ -43,7 +59,17 @@ public class CombatWorld
                 if (hitbox.HasHit(hurtbox))
                     continue; // already resolved this swing
 
-                if (!hitboxBounds.Intersects(hurtbox.GetBounds()))
+                // Swept test: expand the hurtbox by the hitbox's own
+                // half-size (Minkowski sum) and test the hitbox's full
+                // path this step - not just its current position -
+                // against that expanded rect. A stationary hitbox
+                // (sweepStart == currentCenter) degenerates to exactly
+                // the old point-in-rect check, so melee/idle cases behave
+                // identically to before; only a moving hitbox (a
+                // projectile) gets the extra continuous check.
+                var expanded = ExpandByHalfSize(hurtbox.GetBounds(), hitbox.Size);
+
+                if (!SweptCollision.SegmentIntersectsRect(sweepStart, currentCenter, expanded))
                     continue;
 
                 hitbox.MarkHit(hurtbox);
@@ -61,6 +87,21 @@ public class CombatWorld
                     OnHit?.Invoke(hitbox, hurtbox);
                 }
             }
+
+            hitbox.CommitPreviousCenter();
         }
+    }
+
+    /// <summary>
+    /// Grows `rect` outward by half of `size` on every side - the
+    /// Minkowski sum used to turn "does a sized hitbox's path cross this
+    /// rect" into the cheaper "does a point's path cross this bigger
+    /// rect" for the swept test.
+    /// </summary>
+    private static Rectangle ExpandByHalfSize(Rectangle rect, Vector2 size)
+    {
+        int halfW = (int)(size.X / 2f);
+        int halfH = (int)(size.Y / 2f);
+        return new Rectangle(rect.X - halfW, rect.Y - halfH, rect.Width + halfW * 2, rect.Height + halfH * 2);
     }
 }

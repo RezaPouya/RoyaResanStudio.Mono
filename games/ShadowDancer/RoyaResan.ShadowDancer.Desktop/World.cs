@@ -316,7 +316,7 @@ public class World : Game
 
     private void BuildMeleeEnemy(Vector2 position, float leftBound, float rightBound)
     {
-        var (body, health, hurtbox, fsm, _) = BuildEnemyBase(position, new Vector2(28, 48), maxHealth: 3, Color.IndianRed);
+        var (body, health, hurtbox, fsm, _) = BuildEnemyBase(position, new Vector2(28, 48), maxHealth: 10, Color.IndianRed);
 
         var meleeHitbox = new Hitbox { Owner = body, Damage = 1, Size = new Vector2(24, 20), Tag = "EnemyMelee" };
         _scene.AddHitbox(meleeHitbox);
@@ -344,7 +344,7 @@ public class World : Game
 
     private void BuildRangedEnemy(Vector2 position)
     {
-        var (body, health, hurtbox, fsm, _) = BuildEnemyBase(position, new Vector2(24, 40), maxHealth: 2, Color.MediumPurple);
+        var (body, health, hurtbox, fsm, _) = BuildEnemyBase(position, new Vector2(24, 40), maxHealth: 10, Color.MediumPurple);
 
         var vision = new VisionCone { Range = 320f, HalfAngleDegrees = 180f }; // stationary - never patrols to flip facing, so it needs to notice the player from either side
 
@@ -367,7 +367,7 @@ public class World : Game
 
     private void BuildShieldEnemy(Vector2 position, float leftBound, float rightBound)
     {
-        var (body, health, hurtbox, fsm, _) = BuildEnemyBase(position, new Vector2(36, 48), maxHealth: 5, Color.SlateGray);
+        var (body, health, hurtbox, fsm, _) = BuildEnemyBase(position, new Vector2(36, 48), maxHealth: 10, Color.SlateGray);
 
         var spearHitbox = new Hitbox { Owner = body, Damage = 1, Size = new Vector2(46, 16), Tag = "EnemyMelee" };
         _scene.AddHitbox(spearHitbox);
@@ -390,7 +390,7 @@ public class World : Game
             }
         };
 
-        // Shield blocks SWORD but allows KUNAI
+        // Shield blocks KUNAI (while facing the player) but always lets SWORD through
         body.AddScript(new ShieldBlockScript { Fsm = fsm, Hurtbox = hurtbox, Player = _player });
 
         fsm.ChangeState("Idle", force: true);

@@ -5,6 +5,34 @@ namespace RoyaResan.Mono2d.Core;
 
 public class Scene
 {
+    public const float RefreshRatePerSeconds = 120f;
+
+    // Fixed timestep for stable physics...
+    private const float FixedDt = 1f / RefreshRatePerSeconds;
+
+
+    private float _accumulator = 0f;
+
+    /// <summary>
+    /// Hard-pauses gameplay: while true, Update() no-ops entirely - no node
+    /// updates (so no scripts, no AI, no animation), no physics step, no
+    /// combat step, no camera update (so screen shake also freezes rather
+    /// than continuing under a paused game). Draw() is unaffected and
+    /// always runs, so the last simulated frame stays visible underneath
+    /// a pause menu.
+    ///
+    /// This is a full stop, not a time-scale slowdown - there's no partial
+    /// "everything moves at half speed" here. If you later want hit-stop
+    /// or bullet-time, that's a different, smaller feature (a float
+    /// TimeScale multiplied into each dt) - don't reach for IsPaused for it.
+    ///
+    /// Toggling and drawing whatever pause UI you show is entirely up to
+    /// game code - Scene only owns the freeze. See PauseExample.cs.
+    /// </summary>
+    public bool IsPaused;
+
+    private float _hitStopTimer;
+
     public SceneNode Root = new SceneNode();
     public Camera2D Camera = new Camera2D();
     public PhysicsWorld Physics = new PhysicsWorld();
@@ -52,25 +80,7 @@ public class Scene
 
     public void RemoveRope(Rope rope) => Physics.Ropes.Remove(rope);
 
-    /// <summary>
-    /// Hard-pauses gameplay: while true, Update() no-ops entirely - no node
-    /// updates (so no scripts, no AI, no animation), no physics step, no
-    /// combat step, no camera update (so screen shake also freezes rather
-    /// than continuing under a paused game). Draw() is unaffected and
-    /// always runs, so the last simulated frame stays visible underneath
-    /// a pause menu.
-    ///
-    /// This is a full stop, not a time-scale slowdown - there's no partial
-    /// "everything moves at half speed" here. If you later want hit-stop
-    /// or bullet-time, that's a different, smaller feature (a float
-    /// TimeScale multiplied into each dt) - don't reach for IsPaused for it.
-    ///
-    /// Toggling and drawing whatever pause UI you show is entirely up to
-    /// game code - Scene only owns the freeze. See PauseExample.cs.
-    /// </summary>
-    public bool IsPaused;
 
-    private float _hitStopTimer;
 
     /// <summary>
     /// Freezes gameplay for `seconds` (a full stop, same effect as
@@ -85,10 +95,7 @@ public class Scene
         _hitStopTimer = Math.Max(_hitStopTimer, seconds);
     }
 
-    // Fixed timestep for stable physics...
-    private const float FixedDt = 1f / 120f;
 
-    private float _accumulator = 0f;
 
     public void Update(GameTime gameTime)
     {
@@ -106,12 +113,17 @@ public class Scene
 
             Root.Update(gameTime);  // Scripts at render rate
 
-            while (_accumulator >= FixedDt)
+            int steps = 0;
+            while (_accumulator >= FixedDt && steps < 8)
             {
                 Physics.Step(FixedDt);
                 Combat.Step();
                 _accumulator -= FixedDt;
+                steps++;
             }
+
+            if (steps == 8)
+                _accumulator = 0f; // drop the rest rather than spiral
 
             Camera.Update(gameTime);
         }

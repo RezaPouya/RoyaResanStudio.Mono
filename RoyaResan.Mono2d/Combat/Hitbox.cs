@@ -23,6 +23,24 @@ public class Hitbox
     /// <summary>Only checked for overlap while true - set by the attack script during active frames.</summary>
     public bool Active;
 
+    /// <summary>
+    /// Center this Hitbox was at the last time CombatWorld.Step processed
+    /// it, used to sweep the segment between frames instead of only
+    /// testing the current position - see CombatWorld.Step. Reset by
+    /// BeginSwing() so a (re)armed hitbox never sweeps in from a stale
+    /// position left over from a previous swing.
+    /// </summary>
+    public Vector2 PreviousCenter { get; private set; }
+
+    /// <summary>
+    /// Safety cap on the swept test: if the hitbox's center moved further
+    /// than this in a single step, treat it as a teleport (e.g. Offset
+    /// flipping when facing reverses mid-swing) and fall back to a plain
+    /// point check at the current position rather than sweeping a long,
+    /// spurious line across everything in between.
+    /// </summary>
+    public float MaxSweepDistance = 400f;
+
     // Prevents one active swing from hitting the same target every frame
     // it stays overlapping - cleared each time the swing (re)starts.
     private readonly HashSet<Hurtbox> _hitThisSwing = new();
@@ -34,7 +52,13 @@ public class Hitbox
     {
         _hitThisSwing.Clear();
         HasHitAnyTarget = false;
+        PreviousCenter = GetCenter();
     }
+
+    /// <summary>Called by CombatWorld once per step after resolving this hitbox, so next step's sweep starts from here.</summary>
+    public void CommitPreviousCenter() => PreviousCenter = GetCenter();
+
+    public Vector2 GetCenter() => Owner != null ? Owner.GlobalPosition + Offset : Vector2.Zero;
 
     public bool HasHit(Hurtbox target) => _hitThisSwing.Contains(target);
 
