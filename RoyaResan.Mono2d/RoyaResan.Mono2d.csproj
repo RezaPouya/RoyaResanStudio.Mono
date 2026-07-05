@@ -13,6 +13,7 @@
 	<ItemGroup>
 	  <Folder Include="AI\" />
 	  <Folder Include="Audio\" />
+	  <Folder Include="CharacterControllerSystem\" />
 	</ItemGroup>
 
 </Project>
