@@ -66,12 +66,34 @@ public class Scene
     /// </summary>
     public bool IsPaused;
 
+    private float _hitStopTimer;
+
+    /// <summary>
+    /// Freezes gameplay for `seconds` (a full stop, same effect as
+    /// IsPaused, just timed and additive instead of manually toggled) -
+    /// this is the "hit-stop" feature the IsPaused doc-comment above
+    /// pointed at. If already mid-hitstop, the longer of the two wins
+    /// rather than restarting the shorter one from zero. Draw() is
+    /// unaffected, same as IsPaused, so the impact frame stays visible.
+    /// </summary>
+    public void TriggerHitStop(float seconds)
+    {
+        _hitStopTimer = Math.Max(_hitStopTimer, seconds);
+    }
+
     // Fixed timestep for stable physics...
     private const float FixedDt = 1f / 120f;
     private float _accumulator = 0f;
 
     public void Update(GameTime gameTime)
     {
+        if (_hitStopTimer > 0f)
+        {
+            _hitStopTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+            Ui.Update(gameTime);
+            return;
+        }
+
         if (!IsPaused)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;

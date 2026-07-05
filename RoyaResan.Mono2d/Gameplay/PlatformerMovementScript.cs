@@ -44,7 +44,7 @@ public class PlatformerMovementScript : Script
     public float LowJumpGravityMultiplier = 2.5f;
 
     /// <summary>Extra gravity multiplier while falling - snappier descent than a symmetric arc.</summary>
-    public float FallGravityMultiplier = 1.6f;
+    public float FallGravityMultiplier = 2.6f;
 
     public Keys JumpKey = Keys.Space;
     public Keys LeftKey = Keys.A;
@@ -58,7 +58,7 @@ public class PlatformerMovementScript : Script
     public bool IsCrouching { get; private set; }
 
     /// <summary>Hard cap on downward speed - without this, a long fall (e.g. off the level, or before a floor exists) can reach a velocity high enough to tunnel straight through a thin collider in one frame instead of landing on it.</summary>
-    public float MaxFallSpeed = 900f;
+    public float MaxFallSpeed = 1100f;
 
     private float _coyoteTimer;
     private float _jumpBufferTimer;

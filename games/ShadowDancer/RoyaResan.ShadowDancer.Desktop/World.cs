@@ -1,9 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using RoyaResan.Mono2d.Animation;
 using RoyaResan.Mono2d.AI;
 using RoyaResan.Mono2d.AI.States;
+using RoyaResan.Mono2d.Animation;
 using RoyaResan.Mono2d.Combat;
 using RoyaResan.Mono2d.Core;
 using RoyaResan.Mono2d.Gameplay;
@@ -62,6 +62,15 @@ public class World : Game
 
         _scene.Camera.FollowTarget = _player;
         _scene.Camera.FollowSmoothing = 8f;
+
+        // 50ms freeze on a landed sword hit - classic hit-stop, makes
+        // impact register even with placeholder rectangles. Filtered by
+        // Tag so kunai/enemy hits don't also trigger it.
+        _scene.Combat.OnHit += (hitbox, hurtbox) =>
+        {
+            if (hitbox.Tag == "Sword")
+                _scene.TriggerHitStop(0.1f);
+        };
     }
 
     // -----------------------------------------------------------------
@@ -275,7 +284,7 @@ public class World : Game
     {
         var (body, health, hurtbox, fsm, _) = BuildEnemyBase(position, new Vector2(24, 40), maxHealth: 2, Color.MediumPurple);
 
-        var vision = new VisionCone { Range = 320f, HalfAngleDegrees = 50f };
+        var vision = new VisionCone { Range = 320f, HalfAngleDegrees = 180f }; // stationary - never patrols to flip facing, so it needs to notice the player from either side
 
         fsm.AddState("Idle", new IdleState { Vision = vision, NextState = "RangedAttack" });
         fsm.AddState("RangedAttack", new RangedAttackState { Vision = vision, FireInterval = 2f, ProjectileSpeed = 350f, Damage = 1 });
