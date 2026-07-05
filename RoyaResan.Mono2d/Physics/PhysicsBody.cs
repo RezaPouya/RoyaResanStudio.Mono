@@ -1,4 +1,4 @@
-﻿using RoyaResan.Mono2d.Scripting;
+using RoyaResan.Mono2d.Scripting;
 
 namespace RoyaResan.Mono2d.Physics
 {
@@ -9,6 +9,25 @@ namespace RoyaResan.Mono2d.Physics
         public Collider Collider;
 
         public bool IsStatic = false;
+
+        /// <summary>
+        /// True for a static body that moves itself each physics step (a
+        /// moving platform). Still never affected by other bodies'
+        /// collisions - same as any other IsStatic body - but
+        /// PhysicsWorld.Step advances its position, carries any rider
+        /// standing on top, and shoves aside any character it moves into
+        /// from the side.
+        /// </summary>
+        public bool IsMovingPlatform = false;
+
+        /// <summary>
+        /// The body (usually a moving platform) this body landed on as of
+        /// the last grounding check - null if not resting on anything. Set
+        /// by PhysicsWorld alongside IsGrounded; used to carry riders when
+        /// StandingOn.IsMovingPlatform is true. Not meant to be set by
+        /// gameplay code.
+        /// </summary>
+        public PhysicsBody StandingOn;
 
         /// <summary>
         /// Optional user-defined data. Useful for projectiles to remember their real owner (the player).
@@ -41,7 +60,8 @@ namespace RoyaResan.Mono2d.Physics
         /// Position at the end of the previous physics step - cached by
         /// PhysicsWorld, used by one-way platform resolution to tell
         /// whether a body was already above/below the platform last
-        /// frame. Not meant to be set by gameplay code.
+        /// frame, and by moving-platform carry to compute this step's
+        /// platform delta. Not meant to be set by gameplay code.
         /// </summary>
         public Vector2 PreviousPosition;
 
@@ -52,6 +72,15 @@ namespace RoyaResan.Mono2d.Physics
             script.Owner = this;
             Scripts.Add(script);
         }
+
+        /// <summary>
+        /// Advances this body's own position for one physics step. Empty by
+        /// default - only overridden by kinematic bodies like moving
+        /// platforms (see MovingPlatformNode). Called by PhysicsWorld.Step
+        /// before gravity/sweep/carry for dynamic bodies, so riders and
+        /// pushed characters see this step's motion immediately.
+        /// </summary>
+        public virtual void AdvanceKinematic(float dt) { }
 
         public override void Update(GameTime gameTime)
         {

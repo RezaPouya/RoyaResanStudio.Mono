@@ -32,6 +32,9 @@ public class World : Game
 
     private CombatGroup _enemyGroup;
 
+    /// <summary>World-space Y below which anything (player or enemy) is considered fallen into a pit and dies - see FallDeathScript.</summary>
+    private const float FallDeathY = 900f;
+
     private UiElement _hud;
     private UiLabel _healthLabel;
     private UiLabel _kunaiLabel;
@@ -107,25 +110,64 @@ public class World : Game
             floorTile.AddChild(visual);
         }
 
-        // Side walls (simple tall static walls)
-        for (int i = 0; i < 10; i++)
+        // PIT - deliberately no floor tiles from here (x=1280) to the start
+        // of the extended floor below (x=1472). The horizontal moving
+        // platform bridges it; missing the jump means falling to
+        // FallDeathY. Existing enemy patrol bounds all sit well before
+        // this, so nothing patrols over open air.
+        for (int i = 0; i < 4; i++)
         {
-            var leftWall = new WallNode();
-            leftWall.Position = new Vector2(32, 500 - (i * 64) - 32);  // Stack upward from floor
-            _scene.AddBody(leftWall);
-            leftWall.AddChild(new PlaceholderRectNode { Size = new Vector2(64, 64), Color = Color.DarkGray });
-
-            var rightWall = new WallNode();
-            rightWall.Position = new Vector2(32 + 19 * 64, 500 - (i * 64) - 32);
-            _scene.AddBody(rightWall);
-            rightWall.AddChild(new PlaceholderRectNode { Size = new Vector2(64, 64), Color = Color.DarkGray });
+            var floorTile = new WallNode();
+            floorTile.Position = new Vector2(1472 + i * 64, 500);
+            _scene.AddBody(floorTile);
+            var visual = new PlaceholderRectNode { Size = new Vector2(64, 64), Color = Color.DimGray };
+            floorTile.AddChild(visual);
         }
+
+        // NOTE: the old left/right WallNode stacks that used to cap this
+        // level are gone. They were sealing the player in (and were
+        // already inconsistent with enemy #3's patrol bounds reaching
+        // past the old right wall at x=1248). Now that FallDeathY exists,
+        // walking off either end is handled the same way as the pit -
+        // just a fall - so there's no need for a hard wall to prevent it.
 
         // Step platform (unchanged)
         var stepPlatform = new OneWayPlatformNode();
         stepPlatform.Position = new Vector2(400, 400);
         _scene.AddBody(stepPlatform);
         stepPlatform.AddChild(new PlaceholderRectNode { Size = new Vector2(64, 16), Color = Color.SaddleBrown });
+
+        BuildMovingPlatforms();
+    }
+
+    // -----------------------------------------------------------------
+    // MOVING PLATFORMS - one horizontal (bridges the pit above), one
+    // vertical (a free-standing elevator near spawn). Riders standing on
+    // either get carried automatically, and either will crush a
+    // character it moves into sideways against something solid - see
+    // PhysicsWorld.PushSideways.
+    // -----------------------------------------------------------------
+    private void BuildMovingPlatforms()
+    {
+        var horizontalPlatform = new MovingPlatformNode
+        {
+            Position = new Vector2(1328, 470),
+            PointA = new Vector2(1328, 470),
+            PointB = new Vector2(1424, 470),
+            Speed = 70f
+        };
+        horizontalPlatform.AddChild(new PlaceholderRectNode { Size = new Vector2(96, 16), Color = Color.Goldenrod });
+        _scene.AddBody(horizontalPlatform);
+
+        var verticalPlatform = new MovingPlatformNode
+        {
+            Position = new Vector2(150, 460),
+            PointA = new Vector2(150, 460),
+            PointB = new Vector2(150, 200),
+            Speed = 60f
+        };
+        verticalPlatform.AddChild(new PlaceholderRectNode { Size = new Vector2(96, 16), Color = Color.CadetBlue });
+        _scene.AddBody(verticalPlatform);
     }
 
     // -----------------------------------------------------------------
@@ -207,6 +249,13 @@ public class World : Game
         _player.AddScript(animatorDriver);
 
         _playerHealth.OnDeath += () => animatorDriver.IsDead = true;
+
+        // Falling into a pit is lethal, same as running out of Health -
+        // routes through the same OnDeath -> animatorDriver.IsDead flow
+        // rather than inventing a second death path.
+        var fallDeath = new FallDeathScript { DeathY = FallDeathY };
+        fallDeath.OnFallDeath = () => _playerHealth.Damage(_playerHealth.Max);
+        _player.AddScript(fallDeath);
 
         _scene.AddBody(_player);
     }
@@ -298,6 +347,13 @@ public class World : Game
         health.OnDeath += () => fsm.ChangeState("Dead", force: true);
 
         body.AddScript(new EnemyFsmScript { Fsm = fsm });
+
+        // Falling into a pit is lethal, same as losing all Health - routes
+        // through the same OnDeath -> "Dead" state -> despawn flow already
+        // wired above, rather than a separate fall-specific death path.
+        var fallDeath = new FallDeathScript { DeathY = FallDeathY };
+        fallDeath.OnFallDeath = () => health.Damage(health.Max);
+        body.AddScript(fallDeath);
 
         // World-space health bar above enemy (now after health is declared)
         var healthBarBg = new PlaceholderRectNode { Size = new Vector2(32, 4), Color = Color.Black, Position = new Vector2(0, -size.Y / 2 - 10) };

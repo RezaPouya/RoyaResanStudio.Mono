@@ -1,4 +1,4 @@
-﻿namespace RoyaResan.Mono2d.Physics
+namespace RoyaResan.Mono2d.Physics
 {
     public class PhysicsWorld
     {
@@ -10,11 +10,34 @@
             foreach (var rope in Ropes)
                 rope.Step();
 
-            // Clear grounded - re-set below for whatever's actually
-            // resting on something this step.
+            // Clear grounded/standing - re-set below for whatever's
+            // actually resting on something this step.
             foreach (var body in Bodies)
                 if (!body.IsStatic)
+                {
                     body.IsGrounded = false;
+                    body.StandingOn = null;
+                }
+
+            // KINEMATIC PLATFORMS MOVE FIRST
+            //
+            // Moving platforms advance their own position before anything
+            // else happens this step, so their delta is known and can be
+            // used both to carry riders standing on top and to shove aside
+            // any character the platform moves into from the side (crushing
+            // it against a wall if there's nowhere to go).
+            foreach (var body in Bodies)
+            {
+                if (!body.IsStatic || !body.IsMovingPlatform)
+                    continue;
+
+                Vector2 oldPos = body.Position;
+                body.AdvanceKinematic(dt);
+                Vector2 delta = body.Position - oldPos;
+
+                if (delta != Vector2.Zero)
+                    PushSideways(body, delta);
+            }
 
             // INTEGRATION + SWEPT MOVE (per dynamic body, against static geometry)
             //
@@ -30,6 +53,15 @@
             {
                 if (body.IsStatic || body.Collider == null)
                     continue;
+
+                // Carry: if resting on a moving platform, ride along with
+                // its delta this step (any direction) before our own
+                // gravity/input movement is applied below.
+                if (body.StandingOn != null && body.StandingOn.IsMovingPlatform)
+                {
+                    Vector2 platformDelta = body.StandingOn.Position - body.StandingOn.PreviousPosition;
+                    body.Position += platformDelta;
+                }
 
                 if (body.UseGravity)
                     body.Velocity.Y += PhysicsSettings.Gravity * dt;
@@ -57,6 +89,62 @@
         }
 
         /// <summary>
+        /// Shoves any non-rider character the platform's motion this step
+        /// overlaps, in the direction of that motion. Riders (StandingOn ==
+        /// platform) are skipped here - they're already carried in full by
+        /// the Step loop above, so pushing them again here would double
+        /// their movement. This only resolves overlap against the
+        /// platform's own new bounds; it does not additionally sweep the
+        /// pushed body against walls in the same step, so a character
+        /// pinned between a platform and a wall will visibly get squeezed
+        /// deeper each step it stays trapped rather than being stopped
+        /// exactly at the wall - the effect you want for a crush, but
+        /// worth knowing if you later add a "crushed" death/damage check
+        /// (compare the character's Collider width to the gap and kill/
+        /// damage it once the gap goes to zero or negative).
+        /// </summary>
+        private void PushSideways(PhysicsBody platform, Vector2 delta)
+        {
+            if (delta.X == 0f)
+                return; // vertical carry is handled by the rider-carry step; this is sideways-only
+
+            Rectangle platformBounds = platform.Collider.Bounds; // already at post-move position
+
+            foreach (var body in Bodies)
+            {
+                if (body == platform || body.IsStatic || body.Collider == null)
+                    continue;
+
+                if (body.StandingOn == platform)
+                    continue; // rider - already carried, don't push twice
+
+                Vector2 halfSize = body.Collider.Size / 2f;
+
+                bool yOverlaps = body.Position.Y + halfSize.Y > platformBounds.Top &&
+                                  body.Position.Y - halfSize.Y < platformBounds.Bottom;
+                if (!yOverlaps)
+                    continue;
+
+                Rectangle bodyBounds = body.Collider.Bounds;
+                if (!platformBounds.Intersects(bodyBounds))
+                    continue;
+
+                if (delta.X > 0f)
+                {
+                    float push = platformBounds.Right - bodyBounds.Left;
+                    if (push > 0f)
+                        body.Position.X += push;
+                }
+                else
+                {
+                    float push = platformBounds.Left - bodyBounds.Right;
+                    if (push < 0f)
+                        body.Position.X += push;
+                }
+            }
+        }
+
+        /// <summary>
         /// Moves `body` by `delta` along a single axis, clipping the
         /// movement to the first static collider it would hit along the
         /// way instead of moving the full distance and separating
@@ -76,6 +164,7 @@
 
             float allowedDelta = delta;
             bool hitSolid = false;
+            PhysicsBody hitBody = null;
 
             foreach (var other in Bodies)
             {
@@ -106,7 +195,7 @@
                         if (startRight <= otherBounds.Left && startRight + delta > otherBounds.Left)
                         {
                             float clipped = otherBounds.Left - startRight;
-                            if (clipped < allowedDelta) { allowedDelta = clipped; hitSolid = true; }
+                            if (clipped < allowedDelta) { allowedDelta = clipped; hitSolid = true; hitBody = other; }
                         }
                     }
                     else
@@ -115,7 +204,7 @@
                         if (startLeft >= otherBounds.Right && startLeft + delta < otherBounds.Right)
                         {
                             float clipped = otherBounds.Right - startLeft;
-                            if (clipped > allowedDelta) { allowedDelta = clipped; hitSolid = true; }
+                            if (clipped > allowedDelta) { allowedDelta = clipped; hitSolid = true; hitBody = other; }
                         }
                     }
                 }
@@ -132,7 +221,7 @@
                         if (startBottom <= otherBounds.Top && startBottom + delta > otherBounds.Top)
                         {
                             float clipped = otherBounds.Top - startBottom;
-                            if (clipped < allowedDelta) { allowedDelta = clipped; hitSolid = true; }
+                            if (clipped < allowedDelta) { allowedDelta = clipped; hitSolid = true; hitBody = other; }
                         }
                     }
                     else
@@ -141,7 +230,7 @@
                         if (startTop >= otherBounds.Bottom && startTop + delta < otherBounds.Bottom)
                         {
                             float clipped = otherBounds.Bottom - startTop;
-                            if (clipped > allowedDelta) { allowedDelta = clipped; hitSolid = true; }
+                            if (clipped > allowedDelta) { allowedDelta = clipped; hitSolid = true; hitBody = other; }
                         }
                     }
                 }
@@ -164,6 +253,7 @@
                     {
                         body.Velocity.Y = 0f;
                         body.IsGrounded = true; // was falling, landed on top of something solid
+                        body.StandingOn = hitBody;
                     }
                     else
                     {
@@ -211,6 +301,7 @@
                 allowedDelta = clipped;
                 body.Velocity.Y = 0f;
                 body.IsGrounded = true;
+                body.StandingOn = platform;
             }
         }
 
@@ -258,24 +349,6 @@
             }
             else
             {
-                //float push = intersection.Height;
-                //bool aAbove = A.Center.Y < B.Center.Y;
-
-                //a.Position.Y += aAbove ? -push * share : push * share;
-                //b.Position.Y += aAbove ? push * share : -push * share;
-
-                //if (aAbove)
-                //{
-                //    if (a.Velocity.Y > 0) { a.Velocity.Y = 0; a.IsGrounded = true; }
-                //    if (b.Velocity.Y < 0) b.Velocity.Y = 0;
-                //}
-                //else
-                //{
-                //    if (a.Velocity.Y < 0) a.Velocity.Y = 0;
-                //    if (b.Velocity.Y > 0) { b.Velocity.Y = 0; b.IsGrounded = true; }
-                //}
-
-
                 float push = intersection.Height;
                 bool aAbove = A.Center.Y < B.Center.Y;
 

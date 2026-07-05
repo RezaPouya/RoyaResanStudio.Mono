@@ -23,11 +23,17 @@ public static class EnemyWiringExample
         BuildEnemy(scene, group, enemySheet, spawnX: 500, leftBound: 450, rightBound: 600);
     }
 
-    private static void BuildEnemy(Scene scene, CombatGroup group, Texture2D sheet, float spawnX, float leftBound, float rightBound)
+    /// <summary>
+    /// Builds one patrol/chase/attack enemy and returns its body, so
+    /// callers (like a platformer level example) can add more scripts to
+    /// it - e.g. FallDeathScript - afterward.
+    /// </summary>
+    public static PhysicsBody BuildEnemy(Scene scene, CombatGroup group, Texture2D sheet, float spawnX, float leftBound, float rightBound)
     {
         var enemy = new PhysicsBody
         {
-            Position = new Vector2(spawnX, 100)
+            Position = new Vector2(spawnX, 100),
+            UseGravity = true // enemies fall/land like the player now that PatrolState can see ledges
         };
         enemy.Collider = new Collider { Owner = enemy, Size = new Vector2(32, 32) };
 
@@ -50,7 +56,10 @@ public static class EnemyWiringExample
         scene.AddHitbox(hitbox);
 
         // --- AI ---
-        var fsm = new EnemyFsm { Animator = animator, Group = group };
+        // World is set so PatrolState's edge-avoidance raycast (AvoidEdges,
+        // on by default) actually works - without it, edge checks are
+        // silently skipped and the enemy can walk off ledges as before.
+        var fsm = new EnemyFsm { Animator = animator, Group = group, World = scene.Physics, Body = enemy };
         fsm.AddState("Idle", new IdleState { VisionRange = 150f });
         fsm.AddState("Patrol", new PatrolState { LeftBound = leftBound, RightBound = rightBound, Speed = 50f, VisionRange = 150f });
         fsm.AddState("Chase", new ChaseState { Speed = 90f, AttackRange = 36f });
@@ -65,5 +74,7 @@ public static class EnemyWiringExample
 
         group.Join(fsm);
         scene.AddBody(enemy);
+
+        return enemy;
     }
 }
