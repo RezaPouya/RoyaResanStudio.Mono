@@ -39,6 +39,23 @@ public class Renderer
         _spriteBatch.Draw(texture, position, sourceRect, color);
     }
 
+    /// <summary>
+    /// Solid-color filled rectangle in world space, centered on
+    /// worldCenter (matches Collider/Hitbox/Hurtbox's center-origin
+    /// convention - NOT the top-left-origin convention SpriteNode uses
+    /// for textures). Scrolls with Camera like DrawTexture. This is the
+    /// placeholder-art primitive: PlaceholderRectNode uses it so a
+    /// vertical slice can ship before real spritesheets exist.
+    /// </summary>
+    public void DrawRectWorld(Vector2 worldCenter, Vector2 size, Color color)
+    {
+        Vector2 topLeft = worldCenter - size / 2f;
+        if (Camera != null)
+            topLeft = Camera.WorldToScreen(topLeft);
+
+        _spriteBatch.Draw(Pixel, new Rectangle((int)topLeft.X, (int)topLeft.Y, (int)size.X, (int)size.Y), color);
+    }
+
     // --------------------
     // Screen-space (UI/HUD) - deliberately ignore Camera. World content
     // uses the methods above and scrolls with the camera; UI is drawn in

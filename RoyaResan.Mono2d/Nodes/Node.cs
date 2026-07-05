@@ -23,4 +23,17 @@ public class Node
         node.Parent = this;
         Children.Add(node);
     }
+
+    /// <summary>
+    /// Detaches a child from the tree (it stops receiving Update/Draw).
+    /// Does NOT remove it from PhysicsWorld/CombatWorld - for a
+    /// PhysicsBody, use Scene.RemoveBody instead so both sides stay in
+    /// sync. This exists purely for the tree side of despawning
+    /// (projectiles, dead enemies, collected pickups).
+    /// </summary>
+    public void RemoveChild(Node node)
+    {
+        if (Children.Remove(node))
+            node.Parent = null;
+    }
 }

@@ -1,5 +1,4 @@
-﻿using RoyaResan.Mono2d.Physics;
-using RoyaResan.Mono2d.Combat;
+﻿using RoyaResan.Mono2d.Combat;
 using RoyaResan.Mono2d.UI;
 
 namespace RoyaResan.Mono2d.Core;
@@ -30,6 +29,26 @@ public class Scene
     public void AddRope(Rope rope) => Physics.Ropes.Add(rope);
 
     /// <summary>
+    /// Despawns a body: removes it from the tree (Parent.RemoveChild)
+    /// and from PhysicsWorld.Bodies in one call, so it stops colliding
+    /// AND stops being drawn/updated. Use this for anything that needs
+    /// to disappear at runtime - kunai hitting a wall, a dead enemy, a
+    /// collected pickup. Safe to call from inside a Script's Update()
+    /// (removal is immediate, not deferred - don't call this on a body
+    /// while iterating something that also touches it this same frame
+    /// without expecting it to vanish right then).
+    /// </summary>
+    public void RemoveBody(PhysicsBody body)
+    {
+        body.Parent?.RemoveChild(body);
+        Physics.Bodies.Remove(body);
+    }
+
+    public void RemoveHitbox(Hitbox hitbox) => Combat.Hitboxes.Remove(hitbox);
+    public void RemoveHurtbox(Hurtbox hurtbox) => Combat.Hurtboxes.Remove(hurtbox);
+    public void RemoveRope(Rope rope) => Physics.Ropes.Remove(rope);
+
+    /// <summary>
     /// Hard-pauses gameplay: while true, Update() no-ops entirely - no node
     /// updates (so no scripts, no AI, no animation), no physics step, no
     /// combat step, no camera update (so screen shake also freezes rather
@@ -47,21 +66,35 @@ public class Scene
     /// </summary>
     public bool IsPaused;
 
+    //public void Update(GameTime gameTime)
+    //{
+    //    if (!IsPaused)
+    //    {
+    //        Root.Update(gameTime);
+    //        Physics.Step();
+    //        Combat.Step();
+    //        Camera.Update(gameTime);
+    //    }
+
+    //    // UI always updates - a pause menu needs to keep receiving clicks
+    //    // while gameplay itself is frozen.
+    //    Ui.Update(gameTime);
+    //}
+
     public void Update(GameTime gameTime)
     {
         if (!IsPaused)
         {
-            Root.Update(gameTime);
-            Physics.Step();
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            Root.Update(gameTime);  // Scripts only now (no double-move)
+            Physics.Step(dt);       // Now owns integration + resolve
             Combat.Step();
             Camera.Update(gameTime);
         }
 
-        // UI always updates - a pause menu needs to keep receiving clicks
-        // while gameplay itself is frozen.
         Ui.Update(gameTime);
     }
-
     public void Draw(Renderer renderer)
     {
         renderer.Camera = Camera;

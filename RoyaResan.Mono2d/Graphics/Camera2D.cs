@@ -7,6 +7,19 @@ namespace RoyaResan.Mono2d.Graphics
     {
         public Vector2 Position;
 
+        /// <summary>
+        /// Half the viewport size - set this once from World.cs
+        /// (GraphicsDevice.Viewport.Width/Height / 2) after the graphics
+        /// device is ready. Without it, WorldToScreen maps the camera's
+        /// world Position to screen (0,0) instead of screen-center, which
+        /// makes a followed target visibly drift toward the top-left
+        /// corner as FollowSmoothing catches up, instead of staying
+        /// centered on screen like a normal platformer camera. Defaults
+        /// to Vector2.Zero (the old, wrong-looking behavior) only so a
+        /// forgotten assignment fails obviously instead of silently.
+        /// </summary>
+        public Vector2 ScreenCenter = Vector2.Zero;
+
         public float Zoom = 1f; // reserved, NOT used yet
 
         public TransformNode FollowTarget;
@@ -107,13 +120,13 @@ namespace RoyaResan.Mono2d.Graphics
 
         public Vector2 WorldToScreen(Vector2 worldPosition)
         {
-            return worldPosition - Position - _shakeOffset;
+            return worldPosition - Position + ScreenCenter - _shakeOffset;
         }
 
         /// <summary>Inverse of WorldToScreen - needed to aim at the mouse (e.g. RopeController.TryFireAtMouse).</summary>
         public Vector2 ScreenToWorld(Vector2 screenPosition)
         {
-            return screenPosition + Position + _shakeOffset;
+            return screenPosition - ScreenCenter + Position + _shakeOffset;
         }
     }
 }

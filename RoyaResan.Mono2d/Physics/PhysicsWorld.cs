@@ -5,28 +5,60 @@
         public List<PhysicsBody> Bodies = new();
         public List<Rope> Ropes = new();
 
-        public void Step()
+        //public void Step()
+        //{
+        //    foreach (var rope in Ropes)
+        //        rope.Step();
+
+        //    // Cleared before resolving - Resolve()/ResolveOneWay() set it
+        //    // back to true for whatever's actually resting on something
+        //    // this step.
+        //    foreach (var body in Bodies)
+        //        if (!body.IsStatic)
+        //            body.IsGrounded = false;
+
+        //    // Naive O(n²) collision check
+        //    for (int i = 0; i < Bodies.Count; i++)
+        //    {
+        //        for (int j = i + 1; j < Bodies.Count; j++)
+        //        {
+        //            Resolve(Bodies[i], Bodies[j]);
+        //        }
+        //    }
+
+        //    // Cache resolved positions for next frame's one-way platform checks.
+        //    foreach (var body in Bodies)
+        //        body.PreviousPosition = body.Position;
+        //}
+
+        public void Step(float dt)  // Change signature
         {
             foreach (var rope in Ropes)
                 rope.Step();
 
-            // Cleared before resolving - Resolve()/ResolveOneWay() set it
-            // back to true for whatever's actually resting on something
-            // this step.
+            // Clear grounded
             foreach (var body in Bodies)
                 if (!body.IsStatic)
                     body.IsGrounded = false;
 
-            // Naive O(n²) collision check
-            for (int i = 0; i < Bodies.Count; i++)
+            // INTEGRATE FIRST (new)
+            foreach (var body in Bodies)
             {
-                for (int j = i + 1; j < Bodies.Count; j++)
+                if (!body.IsStatic)
                 {
-                    Resolve(Bodies[i], Bodies[j]);
+                    if (body.UseGravity)
+                        body.Velocity.Y += PhysicsSettings.Gravity * dt;
+
+                    body.Position += body.Velocity * dt;
                 }
             }
 
-            // Cache resolved positions for next frame's one-way platform checks.
+            // Then resolve (as before, but now on post-move positions)
+            for (int i = 0; i < Bodies.Count; i++)
+                for (int j = i + 1; j < Bodies.Count; j++)
+                    Resolve(Bodies[i], Bodies[j]);
+
+            // PreviousPosition cache
             foreach (var body in Bodies)
                 body.PreviousPosition = body.Position;
         }

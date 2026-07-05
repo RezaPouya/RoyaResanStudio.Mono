@@ -23,10 +23,21 @@ public class Hitbox
     // it stays overlapping - cleared each time the swing (re)starts.
     private readonly HashSet<Hurtbox> _hitThisSwing = new();
 
-    public void BeginSwing() => _hitThisSwing.Clear();
+    /// <summary>True if this hitbox has connected with anything since the last BeginSwing(). Handy for one-shot hits like a projectile that should despawn on its first hit, rather than enumerating _hitThisSwing.</summary>
+    public bool HasHitAnyTarget { get; private set; }
+
+    public void BeginSwing()
+    {
+        _hitThisSwing.Clear();
+        HasHitAnyTarget = false;
+    }
 
     public bool HasHit(Hurtbox target) => _hitThisSwing.Contains(target);
-    public void MarkHit(Hurtbox target) => _hitThisSwing.Add(target);
+    public void MarkHit(Hurtbox target)
+    {
+        _hitThisSwing.Add(target);
+        HasHitAnyTarget = true;
+    }
 
     public Rectangle GetBounds()
     {

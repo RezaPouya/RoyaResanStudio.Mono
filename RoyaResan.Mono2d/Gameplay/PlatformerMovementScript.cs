@@ -49,6 +49,16 @@ public class PlatformerMovementScript : Script
     public Keys JumpKey = Keys.Space;
     public Keys LeftKey = Keys.A;
     public Keys RightKey = Keys.D;
+    public Keys CrouchKey = Keys.S;
+
+    /// <summary>True = facing right. Starts true. Updated whenever there's horizontal input; holds last direction while idle. Read by attack/kunai-aim scripts and the placeholder pose driver.</summary>
+    public bool FacingRight { get; private set; } = true;
+
+    /// <summary>True while grounded and holding CrouchKey. Doesn't change movement math itself - a crouch speed/hurtbox-shrink effect is layered on by whatever script cares (see HurtboxProfileScript / PlaceholderPoseScript).</summary>
+    public bool IsCrouching { get; private set; }
+
+    /// <summary>Hard cap on downward speed - without this, a long fall (e.g. off the level, or before a floor exists) can reach a velocity high enough to tunnel straight through a thin collider in one frame instead of landing on it.</summary>
+    public float MaxFallSpeed = 900f;
 
     private float _coyoteTimer;
     private float _jumpBufferTimer;
@@ -72,6 +82,11 @@ public class PlatformerMovementScript : Script
         float inputX = 0f;
         if (Input.IsKeyDown(LeftKey)) inputX -= 1f;
         if (Input.IsKeyDown(RightKey)) inputX += 1f;
+
+        if (inputX > 0f) FacingRight = true;
+        else if (inputX < 0f) FacingRight = false;
+
+        IsCrouching = Owner.IsGrounded && Input.IsKeyDown(CrouchKey);
 
         float targetSpeed = inputX * MoveSpeed;
         float rate = Math.Abs(targetSpeed) > 0.01f ? Acceleration : Deceleration;
@@ -116,6 +131,9 @@ public class PlatformerMovementScript : Script
             Owner.Velocity.Y += PhysicsSettings.Gravity * (FallGravityMultiplier - 1f) * dt;
         else if (Owner.Velocity.Y < 0f && !Input.IsKeyDown(JumpKey))
             Owner.Velocity.Y += PhysicsSettings.Gravity * (LowJumpGravityMultiplier - 1f) * dt;
+
+        if (Owner.Velocity.Y > MaxFallSpeed)
+            Owner.Velocity.Y = MaxFallSpeed;
     }
 
     private static float MoveToward(float current, float target, float maxDelta)
