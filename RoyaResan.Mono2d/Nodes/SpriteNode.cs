@@ -43,4 +43,3 @@ namespace RoyaResan.Mono2d.Nodes
         }
     }
 }
-

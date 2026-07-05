@@ -1,6 +1,4 @@
-﻿using RoyaResan.Mono2d.Physics;
-
-namespace RoyaResan.Mono2d.AI;
+﻿namespace RoyaResan.Mono2d.AI;
 
 /// <summary>
 /// Shared awareness + coordination hub that multiple enemies register

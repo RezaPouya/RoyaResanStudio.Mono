@@ -1,6 +1,4 @@
-﻿using RoyaResan.Mono2d.Physics;
-
-namespace RoyaResan.Mono2d.AI;
+﻿namespace RoyaResan.Mono2d.AI;
 
 /// <summary>
 /// A noise event at a world position alerts any CombatGroup member within

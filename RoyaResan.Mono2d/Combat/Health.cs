@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace RoyaResan.Mono2d.Combat;
+﻿namespace RoyaResan.Mono2d.Combat;
 
 /// <summary>
 /// Standalone health component - attach a reference to it from any
@@ -15,6 +13,7 @@ public class Health
 
     /// <summary>Fires on every successful hit: (amount, source that dealt it).</summary>
     public event Action<int, PhysicsBody> OnDamaged;
+
     public event Action OnDeath;
 
     public Health(int max = 100)

@@ -1,8 +1,4 @@
-﻿using RoyaResan.Mono2d.Graphics;
-using RoyaResan.Mono2d.Inputs;
-using RoyaResan.Mono2d.Nodes;
-using RoyaResan.Mono2d.Physics;
-using RoyaResan.Mono2d.Scripting;
+﻿using RoyaResan.Mono2d.Scripting;
 
 namespace RoyaResan.Mono2d.Gameplay;
 
@@ -26,6 +22,7 @@ public class RopeController : Script
 
     // Aim-and-fire mode
     public Camera2D Camera;
+
     public PhysicsWorld World;
 
     // Nearest-anchor fallback mode
@@ -35,7 +32,7 @@ public class RopeController : Script
     {
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-        if (Input.IsKeyPressed(Keys.Space))
+        if (InputManager.IsActionPressed(InputManager.Rope))
         {
             if (Rope.Attached)
                 Rope.Detach();
@@ -47,9 +44,9 @@ public class RopeController : Script
 
         if (Rope.Attached)
         {
-            if (Input.IsKeyDown(Keys.W))
+            if (InputManager.IsActionDown(InputManager.Up))
                 Rope.Reel(ReelSpeed * dt);
-            if (Input.IsKeyDown(Keys.S))
+            if (InputManager.IsActionDown(InputManager.Down))
                 Rope.Reel(-ReelSpeed * dt);
         }
     }
@@ -57,7 +54,7 @@ public class RopeController : Script
     /// <summary>Raycasts toward the mouse in world space, hitting only static geometry, and attaches at the real hit point/distance.</summary>
     public bool TryFireAtMouse()
     {
-        Vector2 worldTarget = Camera.ScreenToWorld(Input.MousePosition);
+        Vector2 worldTarget = Camera.ScreenToWorld(InputManager.MousePosition);
         Vector2 direction = worldTarget - Owner.GlobalPosition;
 
         if (Raycast.Cast(World, Owner.GlobalPosition, direction, Range, out var hit, b => b.IsStatic, Owner))

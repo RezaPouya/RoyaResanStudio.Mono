@@ -1,8 +1,6 @@
 ﻿using RoyaResan.Mono2d.AI;
 using RoyaResan.Mono2d.AI.States;
 using RoyaResan.Mono2d.Core;
-using RoyaResan.Mono2d.Inputs;
-using RoyaResan.Mono2d.Physics;
 using RoyaResan.Mono2d.Scripting;
 
 namespace RoyaResan.Mono2d.Gameplay;
@@ -18,7 +16,7 @@ public class CrouchScript : Script
 
     public override void Update(GameTime gameTime)
     {
-        bool crouching = Input.IsKeyDown(Keys.LeftControl);
+        bool crouching = InputManager.IsActionDown(InputManager.Crouch);
         Stealth.VisibilityMultiplier = crouching ? CrouchVisibility : 1f;
     }
 }
@@ -54,7 +52,9 @@ public static class StealthWiringExample
         var fsm = new EnemyFsm { Group = group, World = scene.Physics };
         fsm.AddState("Patrol", new PatrolState
         {
-            LeftBound = 350, RightBound = 550, Speed = 50f,
+            LeftBound = 350,
+            RightBound = 550,
+            Speed = 50f,
             Vision = vision
         });
         fsm.AddState("Idle", new IdleState { Vision = vision });

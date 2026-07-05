@@ -17,6 +17,7 @@ public class AttackState : EnemyState
 
     /// <summary>Hitbox is only Active between these two points in the swing (seconds).</summary>
     public float ActiveWindowStart = 0.15f;
+
     public float ActiveWindowEnd = 0.3f;
 
     public float AttackRange = 32f;

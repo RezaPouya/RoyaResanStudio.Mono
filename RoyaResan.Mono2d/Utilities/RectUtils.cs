@@ -1,6 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-
-namespace RoyaResan.Mono2d.Utilities;
+﻿namespace RoyaResan.Mono2d.Utilities;
 
 public static class RectUtils
 {

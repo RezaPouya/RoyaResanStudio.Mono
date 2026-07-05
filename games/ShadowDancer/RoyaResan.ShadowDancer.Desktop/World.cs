@@ -21,6 +21,7 @@ public class World : Game
     private GraphicsDeviceManager _graphics;
     private Renderer _renderer;
 
+
     private Scene _scene;
 
     // Kept around so other systems (HUD, later phases) can read them
@@ -40,13 +41,17 @@ public class World : Game
     {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
-        IsMouseVisible = true;
+        IsMouseVisible = false;
+
     }
 
     protected override void LoadContent()
     {
         var spriteBatch = new SpriteBatch(GraphicsDevice);
         _renderer = new Renderer(spriteBatch);
+
+        VirtualControls.Initialize(GraphicsDevice);
+        VirtualControls.ShowVirtualControls = false; // true for mobile / testing
 
         _scene = new Scene();
 
@@ -69,6 +74,12 @@ public class World : Game
 
         _scene.Camera.FollowTarget = _player;
         _scene.Camera.FollowSmoothing = 8f;
+
+        InputManager.Initialize(); // Important!
+        InputManager.RemapKeyboard("Left", Keys.Left);   // Your change
+        InputManager.RemapKeyboard("Right", Keys.Right);
+        InputManager.RemapKeyboard("Attack", Keys.A);
+        InputManager.RemapKeyboard("Throw", Keys.Q);
 
         // 50ms freeze on a landed sword hit - classic hit-stop, makes
         // impact register even with placeholder rectangles. Filtered by
@@ -359,7 +370,8 @@ public class World : Game
             Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
 
-        Input.Update(); // MUST be first
+        InputManager.Update();
+        VirtualControls.Update();
 
         _scene.Update(gameTime);
 
@@ -375,7 +387,10 @@ public class World : Game
 
         _renderer.Begin();
 
+
         _scene.Draw(_renderer);
+
+        VirtualControls.Draw(_renderer);
 
         _hud.Draw(_renderer);
 

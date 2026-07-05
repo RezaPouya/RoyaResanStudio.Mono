@@ -1,6 +1,4 @@
-﻿using RoyaResan.Mono2d.Physics;
-
-namespace RoyaResan.Mono2d.Scripting
+﻿namespace RoyaResan.Mono2d.Scripting
 {
     public abstract class Script
     {
@@ -15,8 +13,10 @@ namespace RoyaResan.Mono2d.Scripting
             Start();
         }
 
-        public virtual void Start() { }
+        public virtual void Start()
+        { }
 
-        public virtual void Update(GameTime gameTime) { }
+        public virtual void Update(GameTime gameTime)
+        { }
     }
 }

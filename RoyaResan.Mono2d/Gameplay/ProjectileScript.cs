@@ -1,6 +1,5 @@
 using RoyaResan.Mono2d.Combat;
 using RoyaResan.Mono2d.Core;
-using RoyaResan.Mono2d.Physics;
 using RoyaResan.Mono2d.Scripting;
 
 namespace RoyaResan.Mono2d.Gameplay;

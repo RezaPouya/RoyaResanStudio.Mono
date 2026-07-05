@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace RoyaResan.Mono2d.AI.States;
+﻿namespace RoyaResan.Mono2d.AI.States;
 
 public class ChaseState : EnemyState
 {

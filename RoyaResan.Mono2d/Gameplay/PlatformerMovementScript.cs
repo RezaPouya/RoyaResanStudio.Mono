@@ -1,5 +1,4 @@
-﻿using RoyaResan.Mono2d.Physics;
-using RoyaResan.Mono2d.Scripting;
+﻿using RoyaResan.Mono2d.Scripting;
 
 namespace RoyaResan.Mono2d.Gameplay;
 
@@ -46,10 +45,7 @@ public class PlatformerMovementScript : Script
     /// <summary>Extra gravity multiplier while falling - snappier descent than a symmetric arc.</summary>
     public float FallGravityMultiplier = 2.6f;
 
-    public Keys JumpKey = Keys.Space;
-    public Keys LeftKey = Keys.A;
-    public Keys RightKey = Keys.D;
-    public Keys CrouchKey = Keys.S;
+
 
     /// <summary>True = facing right. Starts true. Updated whenever there's horizontal input; holds last direction while idle. Read by attack/kunai-aim scripts and the placeholder pose driver.</summary>
     public bool FacingRight { get; private set; } = true;
@@ -80,13 +76,13 @@ public class PlatformerMovementScript : Script
     private void UpdateHorizontal(float dt)
     {
         float inputX = 0f;
-        if (Input.IsKeyDown(LeftKey)) inputX -= 1f;
-        if (Input.IsKeyDown(RightKey)) inputX += 1f;
+        if (InputManager.IsActionDown(InputManager.Left)) inputX -= 1f;
+        if (InputManager.IsActionDown(InputManager.Right)) inputX += 1f;
 
         if (inputX > 0f) FacingRight = true;
         else if (inputX < 0f) FacingRight = false;
 
-        IsCrouching = Owner.IsGrounded && Input.IsKeyDown(CrouchKey);
+        IsCrouching = Owner.IsGrounded && InputManager.IsActionDown(InputManager.Crouch);
 
         float targetSpeed = inputX * MoveSpeed;
         float rate = Math.Abs(targetSpeed) > 0.01f ? Acceleration : Deceleration;
@@ -103,7 +99,7 @@ public class PlatformerMovementScript : Script
 
         // Jump buffering: remember a jump press for a short window so it
         // still fires if it landed slightly before touching ground.
-        if (Input.IsKeyPressed(JumpKey))
+        if (InputManager.IsActionPressed(InputManager.Jump))
             _jumpBufferTimer = JumpBufferTime;
         else
             _jumpBufferTimer -= dt;
@@ -118,7 +114,7 @@ public class PlatformerMovementScript : Script
 
         // Variable height: released early while still going up -> cut the
         // rise short right now instead of waiting for gravity to do it.
-        if (_isJumpRising && Input.IsKeyReleased(JumpKey) && Owner.Velocity.Y < 0f)
+        if (_isJumpRising && InputManager.IsActionReleased(InputManager.Jump) && Owner.Velocity.Y < 0f)
             Owner.Velocity.Y *= 0.5f;
 
         if (Owner.Velocity.Y >= 0f)
@@ -129,7 +125,7 @@ public class PlatformerMovementScript : Script
         // is what actually shapes the fast-fall / short-hop arc.
         if (Owner.Velocity.Y > 0f)
             Owner.Velocity.Y += PhysicsSettings.Gravity * (FallGravityMultiplier - 1f) * dt;
-        else if (Owner.Velocity.Y < 0f && !Input.IsKeyDown(JumpKey))
+        else if (Owner.Velocity.Y < 0f && !InputManager.IsActionDown(InputManager.Jump))
             Owner.Velocity.Y += PhysicsSettings.Gravity * (LowJumpGravityMultiplier - 1f) * dt;
 
         if (Owner.Velocity.Y > MaxFallSpeed)

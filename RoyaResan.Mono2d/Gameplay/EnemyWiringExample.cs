@@ -3,7 +3,6 @@ using RoyaResan.Mono2d.AI.States;
 using RoyaResan.Mono2d.Animation;
 using RoyaResan.Mono2d.Combat;
 using RoyaResan.Mono2d.Core;
-using RoyaResan.Mono2d.Physics;
 
 namespace RoyaResan.Mono2d.Gameplay;
 

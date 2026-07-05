@@ -1,7 +1,4 @@
-﻿using RoyaResan.Mono2d.Graphics;
-using RoyaResan.Mono2d.Physics;
-
-namespace RoyaResan.Mono2d.Nodes;
+﻿namespace RoyaResan.Mono2d.Nodes;
 
 /// <summary>
 /// Renders one Tiled tile layer from a single tileset texture. Pure

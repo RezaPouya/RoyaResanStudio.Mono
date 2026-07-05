@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace RoyaResan.Mono2d.Combat;
+﻿namespace RoyaResan.Mono2d.Combat;
 
 /// <summary>
 /// Owns all Hitboxes/Hurtboxes in a scene and resolves overlaps each

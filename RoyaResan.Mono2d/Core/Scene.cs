@@ -25,7 +25,9 @@ public class Scene
     }
 
     public void AddHitbox(Hitbox hitbox) => Combat.Hitboxes.Add(hitbox);
+
     public void AddHurtbox(Hurtbox hurtbox) => Combat.Hurtboxes.Add(hurtbox);
+
     public void AddRope(Rope rope) => Physics.Ropes.Add(rope);
 
     /// <summary>
@@ -45,7 +47,9 @@ public class Scene
     }
 
     public void RemoveHitbox(Hitbox hitbox) => Combat.Hitboxes.Remove(hitbox);
+
     public void RemoveHurtbox(Hurtbox hurtbox) => Combat.Hurtboxes.Remove(hurtbox);
+
     public void RemoveRope(Rope rope) => Physics.Ropes.Remove(rope);
 
     /// <summary>
@@ -83,6 +87,7 @@ public class Scene
 
     // Fixed timestep for stable physics...
     private const float FixedDt = 1f / 120f;
+
     private float _accumulator = 0f;
 
     public void Update(GameTime gameTime)
@@ -113,6 +118,7 @@ public class Scene
 
         Ui.Update(gameTime);
     }
+
     public void Draw(Renderer renderer)
     {
         renderer.Camera = Camera;

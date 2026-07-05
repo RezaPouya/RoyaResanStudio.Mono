@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace RoyaResan.Mono2d.Combat;
+﻿namespace RoyaResan.Mono2d.Combat;
 
 /// <summary>
 /// The region that can be hit. Carries a reference to a Health component

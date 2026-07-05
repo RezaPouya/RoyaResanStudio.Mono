@@ -1,7 +1,4 @@
-﻿using System;
-using RoyaResan.Mono2d.Physics;
-
-namespace RoyaResan.Mono2d.AI;
+﻿namespace RoyaResan.Mono2d.AI;
 
 /// <summary>
 /// Full stealth vision check: target must be within Range (scaled by the

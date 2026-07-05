@@ -51,7 +51,7 @@ public class SwordAttackScript : Script
         if (_cooldownTimer > 0f)
             _cooldownTimer -= dt;
 
-        if (!IsAttacking && _cooldownTimer <= 0f && Input.IsKeyPressed(AttackKey))
+        if (!IsAttacking && _cooldownTimer <= 0f && InputManager.IsActionPressed(InputManager.Attack))
         {
             IsAttacking = true;
             _activeTimer = ActiveDuration;

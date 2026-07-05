@@ -1,6 +1,4 @@
-﻿using RoyaResan.Mono2d.Physics;
-
-namespace RoyaResan.Mono2d.Nodes;
+﻿namespace RoyaResan.Mono2d.Nodes;
 
 /// <summary>
 /// A platform you can jump up through and land on top of, but never

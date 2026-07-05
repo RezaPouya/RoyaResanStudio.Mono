@@ -1,7 +1,4 @@
-﻿using System;
-using RoyaResan.Mono2d.Physics;
-
-namespace RoyaResan.Mono2d.Graphics
+﻿namespace RoyaResan.Mono2d.Graphics
 {
     public class Camera2D
     {
@@ -38,6 +35,7 @@ namespace RoyaResan.Mono2d.Graphics
         /// look-ahead needs a velocity to read. 0 disables it.
         /// </summary>
         public float LookAheadDistance = 0f;
+
         public float LookAheadSmoothing = 6f;
 
         private Vector2 _lookAheadOffset;

@@ -1,4 +1,3 @@
-
 using RoyaResan.Mono2d.Core;
 using RoyaResan.Mono2d.UI;
 
@@ -42,7 +41,7 @@ public static class PauseExample
 
     public static void Update(Scene scene, GameTime gameTime)
     {
-        if (Input.IsKeyPressed(Keys.Escape))
+        if (InputManager.IsActionPressed(InputManager.Menu))
         {
             scene.IsPaused = !scene.IsPaused;
 

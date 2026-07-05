@@ -12,6 +12,7 @@ public class Hitbox
 
     /// <summary>Offset from Owner.GlobalPosition, so it can sit in front of/around the entity.</summary>
     public Vector2 Offset;
+
     public Vector2 Size;
 
     public int Damage = 10;
@@ -36,6 +37,7 @@ public class Hitbox
     }
 
     public bool HasHit(Hurtbox target) => _hitThisSwing.Contains(target);
+
     public void MarkHit(Hurtbox target)
     {
         _hitThisSwing.Add(target);

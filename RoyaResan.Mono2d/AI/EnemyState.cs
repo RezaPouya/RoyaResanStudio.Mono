@@ -10,7 +10,12 @@ public abstract class EnemyState
     /// <summary>Set automatically by EnemyFsm.AddState.</summary>
     public EnemyFsm Machine;
 
-    public virtual void Enter() { }
-    public virtual void Update(GameTime gameTime) { }
-    public virtual void Exit() { }
+    public virtual void Enter()
+    { }
+
+    public virtual void Update(GameTime gameTime)
+    { }
+
+    public virtual void Exit()
+    { }
 }

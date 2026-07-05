@@ -1,5 +1,4 @@
 ﻿using RoyaResan.Mono2d.Animation;
-using RoyaResan.Mono2d.Nodes;
 
 namespace RoyaResan.Mono2d.Gameplay;
 
@@ -41,28 +40,32 @@ public static class PlayerAnimatorExample
 
         animator.AddTransition(new AnimationTransition
         {
-            From = "*", To = "Attack",
+            From = "*",
+            To = "Attack",
             Condition = () => isAttacking,
             BlendDuration = 0.05f // snappy blend into attack
         });
 
         animator.AddTransition(new AnimationTransition
         {
-            From = "Attack", To = "Idle",
+            From = "Attack",
+            To = "Idle",
             Condition = () => !isAttacking && !isMoving,
             BlendDuration = 0.1f
         });
 
         animator.AddTransition(new AnimationTransition
         {
-            From = "Idle", To = "Run",
+            From = "Idle",
+            To = "Run",
             Condition = () => isMoving,
             BlendDuration = 0.1f
         });
 
         animator.AddTransition(new AnimationTransition
         {
-            From = "Run", To = "Idle",
+            From = "Run",
+            To = "Idle",
             Condition = () => !isMoving,
             BlendDuration = 0.1f
         });

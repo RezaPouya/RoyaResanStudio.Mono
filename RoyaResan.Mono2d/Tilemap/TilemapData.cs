@@ -20,6 +20,7 @@ public class TilemapData
 
     /// <summary>Tileset image path as written in the Tiled file (relative to the map) - caller loads the actual Texture2D.</summary>
     public string TilesetImagePath = "";
+
     public int TilesetColumns;
     public int TilesetFirstGid = 1;
 

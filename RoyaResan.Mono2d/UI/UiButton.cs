@@ -1,7 +1,4 @@
-﻿using RoyaResan.Mono2d.Graphics;
-using RoyaResan.Mono2d.Inputs;
-
-namespace RoyaResan.Mono2d.UI;
+﻿namespace RoyaResan.Mono2d.UI;
 
 /// <summary>
 /// Rectangle + centered label + click handling. Hover/click both use
@@ -28,10 +25,10 @@ public class UiButton : UiElement
             return;
 
         var bounds = new Rectangle((int)ScreenPosition.X, (int)ScreenPosition.Y, (int)Size.X, (int)Size.Y);
-        Vector2 mouse = Input.MousePosition;
+        Vector2 mouse = InputManager.MousePosition;
         IsHovered = bounds.Contains((int)mouse.X, (int)mouse.Y);
 
-        if (IsHovered && Input.LeftPressed)
+        if (IsHovered && InputManager.LeftPressed)
             OnClick?.Invoke();
     }
 

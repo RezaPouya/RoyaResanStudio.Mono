@@ -1,6 +1,4 @@
-﻿using RoyaResan.Mono2d.Graphics;
-
-namespace RoyaResan.Mono2d.UI;
+﻿namespace RoyaResan.Mono2d.UI;
 
 /// <summary>
 /// Simple screen stack. Push a built UiElement tree (a pause menu, a HUD,

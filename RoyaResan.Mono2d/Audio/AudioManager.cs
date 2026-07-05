@@ -39,7 +39,9 @@ public static class AudioManager
     }
 
     public static void StopMusic() => MediaPlayer.Stop();
+
     public static void PauseMusic() => MediaPlayer.Pause();
+
     public static void ResumeMusic() => MediaPlayer.Resume();
 
     /// <summary>Call after changing MasterVolume/MusicVolume at runtime (e.g. from an options menu) to apply it to music immediately.</summary>

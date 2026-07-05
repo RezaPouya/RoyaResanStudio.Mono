@@ -1,6 +1,4 @@
-﻿using RoyaResan.Mono2d.Graphics;
-
-namespace RoyaResan.Mono2d.UI;
+﻿namespace RoyaResan.Mono2d.UI;
 
 /// <summary>
 /// Minimal retained-mode UI node. Deliberately a separate, much simpler

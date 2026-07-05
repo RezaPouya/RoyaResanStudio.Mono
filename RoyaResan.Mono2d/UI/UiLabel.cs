@@ -1,6 +1,4 @@
-﻿using RoyaResan.Mono2d.Graphics;
-
-namespace RoyaResan.Mono2d.UI;
+﻿namespace RoyaResan.Mono2d.UI;
 
 /// <summary>Static or dynamic text - set Text every frame from game code for things like a HUD score/health readout.</summary>
 public class UiLabel : UiElement

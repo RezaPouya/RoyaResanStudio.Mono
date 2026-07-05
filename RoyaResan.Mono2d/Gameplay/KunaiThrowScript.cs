@@ -37,6 +37,7 @@ public class KunaiThrowScript : Script
 
     /// <summary>True for ThrowPoseDuration after a throw - lets an Animator transition rule yield to the Throw state briefly, same pattern as SwordAttackScript.IsAttacking.</summary>
     public bool IsThrowing { get; private set; }
+
     public float ThrowPoseDuration = 0.2f;
 
     private float _cooldownTimer;
@@ -61,7 +62,7 @@ public class KunaiThrowScript : Script
                 IsThrowing = false;
         }
 
-        if (_cooldownTimer <= 0f && Ammo > 0 && Input.IsKeyPressed(ThrowKey))
+        if (_cooldownTimer <= 0f && Ammo > 0 && InputManager.IsActionPressed(InputManager.Throw))
         {
             Throw();
             _cooldownTimer = Cooldown;

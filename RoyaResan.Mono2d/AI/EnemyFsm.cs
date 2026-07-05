@@ -1,5 +1,4 @@
 ﻿using RoyaResan.Mono2d.Animation;
-using RoyaResan.Mono2d.Physics;
 
 namespace RoyaResan.Mono2d.AI;
 
