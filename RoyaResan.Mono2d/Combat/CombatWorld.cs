@@ -30,6 +30,10 @@ public class CombatWorld
                 if (hurtbox.Owner == null || hurtbox.Owner == hitbox.Owner)
                     continue; // no self-hit
 
+                // Prevent friendly fire
+                if (hitbox.Owner.Team == hurtbox.Owner.Team && hitbox.Owner.Team != "None")
+                    continue;
+
                 if (hurtbox.Invulnerable)
                     continue; // i-frames - e.g. mid-roll, per HurtboxProfile
 

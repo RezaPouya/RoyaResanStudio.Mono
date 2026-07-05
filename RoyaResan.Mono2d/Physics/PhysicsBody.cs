@@ -29,6 +29,9 @@ namespace RoyaResan.Mono2d.Physics
         /// <summary>Optional - null means fully visible (multiplier 1). See StealthModifier.</summary>
         public StealthModifier Stealth;
 
+        /// <summary>Used to prevent friendly fire between same-team entities (e.g. enemies don't hit each other).</summary>
+        public string Team = "None";
+
         /// <summary>
         /// Position at the end of the previous physics step - cached by
         /// PhysicsWorld, used by one-way platform resolution to tell

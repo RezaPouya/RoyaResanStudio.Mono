@@ -84,7 +84,7 @@ public class KunaiThrowScript : Script
         var visual = new PlaceholderRectNode { Size = new Vector2(10f, 6f), Color = Color.DarkSlateGray };
         kunaiBody.AddChild(visual);
 
-        var hitbox = new Hitbox { Owner = kunaiBody, Damage = 1, Size = new Vector2(10f, 6f), Tag = "Kunai" };
+        var hitbox = new Hitbox { Owner = kunaiBody, Damage = 2, Size = new Vector2(10f, 6f), Tag = "Kunai" };
 
         Scene.AddBody(kunaiBody);
         Scene.AddHitbox(hitbox);
