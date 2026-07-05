@@ -22,6 +22,12 @@ public class EnemyFsm
     /// <summary>Optional - needed by states that raycast for line-of-sight (see VisionCone).</summary>
     public PhysicsWorld World;
 
+    /// <summary>Optional - needed by DeadState (despawn) and RangedAttackState (spawning a projectile).</summary>
+    public Core.Scene Scene;
+
+    /// <summary>Shared facing direction, kept in sync by PatrolState/ChaseState. Read by anything that needs "which way is this enemy looking" without owning its own copy - ShieldBlockScript, projectile aim, etc.</summary>
+    public Vector2 FacingDirection = Vector2.UnitX;
+
     private readonly Dictionary<string, EnemyState> _states = new();
     private EnemyState _current;
 

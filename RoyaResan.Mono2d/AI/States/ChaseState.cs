@@ -32,6 +32,7 @@ public class ChaseState : EnemyState
 
         float dir = dx < 0 ? -1f : 1f;
         body.Velocity = new Vector2(dir * Speed, body.Velocity.Y);
+        Machine.FacingDirection = new Vector2(dir, 0);
     }
 
     public override void Exit()

@@ -35,6 +35,9 @@ public class CombatWorld
                 if (hurtbox.Invulnerable)
                     continue; // i-frames - e.g. mid-roll, per HurtboxProfile
 
+                if (hurtbox.BlockedTags != null && hitbox.Tag != null && hurtbox.BlockedTags.Contains(hitbox.Tag))
+                    continue; // blocked by attack type - e.g. a raised shield blocking Sword but not Kunai
+
                 if (hitbox.HasHit(hurtbox))
                     continue; // already resolved this swing
 

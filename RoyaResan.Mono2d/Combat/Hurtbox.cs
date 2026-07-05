@@ -31,6 +31,17 @@ public class Hurtbox
     /// </summary>
     public bool Invulnerable;
 
+    /// <summary>
+    /// If set, any incoming Hitbox whose Tag is in this set is skipped -
+    /// unlike Invulnerable (which blocks everything), this blocks by
+    /// attack type. This is the whole mechanism behind the Shield/Spear
+    /// enemy: ShieldBlockScript sets this to {"Sword"} while facing the
+    /// player (blocks melee, kunai still gets through and staggers it),
+    /// and clears it when the player is behind or it's staggered (any
+    /// attack lands). Null (default) = blocks nothing extra.
+    /// </summary>
+    public HashSet<string> BlockedTags;
+
     /// <summary>Fires on the defender when they successfully parry an incoming hitbox.</summary>
     public event Action<Hitbox> OnParried;
 

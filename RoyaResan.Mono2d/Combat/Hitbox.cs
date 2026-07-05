@@ -16,6 +16,9 @@ public class Hitbox
 
     public int Damage = 10;
 
+    /// <summary>Optional free-form label ("Sword", "Kunai", ...) - lets a Hurtbox block by attack type via BlockedTags instead of just on/off (see the Shield enemy's directional block).</summary>
+    public string Tag;
+
     /// <summary>Only checked for overlap while true - set by the attack script during active frames.</summary>
     public bool Active;
 

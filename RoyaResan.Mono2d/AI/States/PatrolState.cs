@@ -28,6 +28,8 @@ public class PatrolState : EnemyState
         if (Vision != null)
             Vision.FacingDirection = new Vector2(_direction, 0);
 
+        Machine.FacingDirection = new Vector2(_direction, 0);
+
         var group = Machine.Group;
         if (group?.Target == null)
             return;
