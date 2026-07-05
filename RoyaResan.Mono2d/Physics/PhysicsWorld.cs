@@ -41,14 +41,13 @@
                 if (!body.IsStatic)
                     body.IsGrounded = false;
 
-            // INTEGRATE FIRST (new)
+            // INTEGRATION (gravity + move)
             foreach (var body in Bodies)
             {
                 if (!body.IsStatic)
                 {
                     if (body.UseGravity)
                         body.Velocity.Y += PhysicsSettings.Gravity * dt;
-
                     body.Position += body.Velocity * dt;
                 }
             }

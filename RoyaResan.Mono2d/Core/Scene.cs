@@ -66,30 +66,26 @@ public class Scene
     /// </summary>
     public bool IsPaused;
 
-    //public void Update(GameTime gameTime)
-    //{
-    //    if (!IsPaused)
-    //    {
-    //        Root.Update(gameTime);
-    //        Physics.Step();
-    //        Combat.Step();
-    //        Camera.Update(gameTime);
-    //    }
-
-    //    // UI always updates - a pause menu needs to keep receiving clicks
-    //    // while gameplay itself is frozen.
-    //    Ui.Update(gameTime);
-    //}
+    // Fixed timestep for stable physics...
+    private const float FixedDt = 1f / 120f;
+    private float _accumulator = 0f;
 
     public void Update(GameTime gameTime)
     {
         if (!IsPaused)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            _accumulator += dt;
 
-            Root.Update(gameTime);  // Scripts only now (no double-move)
-            Physics.Step(dt);       // Now owns integration + resolve
-            Combat.Step();
+            Root.Update(gameTime);  // Scripts at render rate
+
+            while (_accumulator >= FixedDt)
+            {
+                Physics.Step(FixedDt);
+                Combat.Step();
+                _accumulator -= FixedDt;
+            }
+
             Camera.Update(gameTime);
         }
 
