@@ -29,7 +29,7 @@ public class KunaiThrowScript : Script
     public int Ammo = 100;
     public int MaxAmmo = 200;
 
-    public float ThrowSpeed = 500f;
+    public float ThrowSpeed = 750f;
     public float Cooldown = 0.50f;
 
     /// <summary>Fires whenever Ammo changes - wire a HUD label to this instead of polling.</summary>
