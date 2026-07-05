@@ -11,6 +11,8 @@ using RoyaResan.Mono2d.Graphics;
 using RoyaResan.Mono2d.Inputs;
 using RoyaResan.Mono2d.Nodes;
 using RoyaResan.Mono2d.Physics;
+using RoyaResan.Mono2d.UI;
+using System;
 
 namespace RoyaResan.ShadowDancer.Desktop;
 
@@ -29,6 +31,10 @@ public class World : Game
     private SwordAttackScript _playerSword;
 
     private CombatGroup _enemyGroup;
+
+    private UiElement _hud;
+    private UiLabel _healthLabel;
+    private UiLabel _kunaiLabel;
 
     public World()
     {
@@ -59,6 +65,7 @@ public class World : Game
         BuildTemporaryTestFloor();
         BuildPlayer();
         BuildEnemies();
+        BuildHud();
 
         _scene.Camera.FollowTarget = _player;
         _scene.Camera.FollowSmoothing = 8f;
@@ -69,7 +76,7 @@ public class World : Game
         _scene.Combat.OnHit += (hitbox, hurtbox) =>
         {
             if (hitbox.Tag == "Sword")
-                _scene.TriggerHitStop(0.1f);
+                _scene.TriggerHitStop(0.05f);
         };
     }
 
@@ -207,6 +214,35 @@ public class World : Game
     }
 
     // -----------------------------------------------------------------
+    // HUD - kept as a direct reference and Update/Draw'd manually
+    // alongside Scene.Ui, NOT pushed through Scene.Ui.Push(). Per
+    // UiManager's own doc-comment: only the top of that stack gets
+    // input/draw, so a HUD that needs to stay visible under a pause
+    // menu can't live there - it has to be driven separately.
+    // -----------------------------------------------------------------
+    private void BuildHud()
+    {
+        var font = Content.Load<SpriteFont>("DefaultFont");
+
+        _hud = new UiElement { Position = new Vector2(16, 16) };
+
+        _healthLabel = new UiLabel { Font = font, Color = Color.Red };
+        _hud.AddChild(_healthLabel);
+
+        _kunaiLabel = new UiLabel { Font = font, Position = new Vector2(0, 26), Color = Color.White };
+        _hud.AddChild(_kunaiLabel);
+
+        RefreshHud();
+    }
+
+    /// <summary>Recomputes HUD text from current game state - called every frame rather than wired to events, since it's cheap and this way it can never drift out of sync.</summary>
+    private void RefreshHud()
+    {
+        _healthLabel.Text = new string('\u2665', Math.Max(0, _playerHealth.Current));
+        _kunaiLabel.Text = $"Kunai x{_playerKunai.Ammo}";
+    }
+
+    // -----------------------------------------------------------------
     // ENEMIES
     // -----------------------------------------------------------------
     private void BuildEnemies()
@@ -327,6 +363,9 @@ public class World : Game
 
         _scene.Update(gameTime);
 
+        RefreshHud();
+        _hud.Update(gameTime, Vector2.Zero);
+
         base.Update(gameTime);
     }
 
@@ -337,6 +376,8 @@ public class World : Game
         _renderer.Begin();
 
         _scene.Draw(_renderer);
+
+        _hud.Draw(_renderer);
 
         _renderer.End();
 
