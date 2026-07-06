@@ -102,7 +102,13 @@ public class KunaiThrowScript : Script
         Scene.AddHitbox(hitbox);
 
         kunaiBody.Velocity = new Vector2(facingRight ? ThrowSpeed : -ThrowSpeed, 0f);
-        kunaiBody.AddScript(new ProjectileScript { Scene = Scene, Hitbox = hitbox });
+        kunaiBody.AddScript(new ProjectileScript
+        {
+            Scene = Scene,
+            Hitbox = hitbox,
+            Lifetime = 2.5f,           // Longer lifetime
+            StoppedSpeedThreshold = 10f
+        });
 
         Ammo--;
         OnAmmoChanged?.Invoke(Ammo);

@@ -48,7 +48,7 @@ namespace RoyaResan.Mono2d.Physics
             // gets, not just "usually fine at today's speeds."
             foreach (var body in Bodies)
             {
-                if (body.IsStatic || body.Collider == null)
+                if (body.IsStatic || body.Collider is null)
                     continue;
 
                 // Carry: if currently resting on a moving platform, ride
@@ -112,14 +112,14 @@ namespace RoyaResan.Mono2d.Physics
         /// </summary>
         private PhysicsBody FindSupportingPlatform(PhysicsBody body)
         {
-            if (body.Collider == null)
+            if (body.Collider is null)
                 return null;
 
             float halfWidth = body.Collider.Size.X / 2f;
             float halfHeight = body.Collider.Size.Y / 2f;
             float feetY = body.Position.Y + halfHeight;
 
-            const float tolerance = 4f;
+            const float tolerance = 12f;  // Increased significantly for vertical platforms + jumps
 
             foreach (var other in Bodies)
             {
