@@ -161,9 +161,16 @@ public class World : Game
 
         var verticalPlatform = new MovingPlatformNode
         {
-            Position = new Vector2(150, 460),
-            PointA = new Vector2(150, 460),
-            PointB = new Vector2(150, 200),
+            // Old PointA (150,460) sat flush with the main floor's top
+            // (468) - basically at ground level, so there was nothing to
+            // actually jump up onto. The floor top is 468; JumpVelocity
+            // 420 against Gravity 900 gives a max jump height of roughly
+            // 420*420/(2*900) ≈ 98px, so a low point at 400 (68px up) is
+            // an easy direct jump, while the high point at 150 (318px up)
+            // is only reachable by riding the platform up.
+            Position = new Vector2(980, 400),
+            PointA = new Vector2(980, 400),
+            PointB = new Vector2(980, 150),
             Speed = 60f
         };
         verticalPlatform.AddChild(new PlaceholderRectNode { Size = new Vector2(96, 16), Color = Color.CadetBlue });
@@ -217,7 +224,14 @@ public class World : Game
         _scene.AddHurtbox(hurtbox);
 
         // --- sword ---
-        var swordHitbox = new Hitbox { Owner = _player, Damage = 2, Tag = "Sword" };
+        var swordHitbox = new Hitbox
+        {
+            Owner = _player,
+            Damage = 2,
+            Tag = "Sword",
+            Knockback = new Vector2(180f, 0f),
+            SelfKnockback = new Vector2(20f, 0f) // small recoil - mostly for feel, not balance
+        };
         _scene.AddHitbox(swordHitbox);
 
         _playerSword = new SwordAttackScript
@@ -340,7 +354,7 @@ public class World : Game
         var hurtbox = new Hurtbox { Owner = body, Size = size, Health = health };
         _scene.AddHurtbox(hurtbox);
 
-        var fsm = new EnemyFsm { Animator = animator, Group = _enemyGroup, World = _scene.Physics, Scene = _scene };
+        var fsm = new EnemyFsm { Animator = animator, Group = _enemyGroup, World = _scene.Physics, Scene = _scene, HomePosition = position };
         _enemyGroup.Join(fsm);
 
         fsm.AddState("Dead", new DeadState { Hurtbox = hurtbox });
@@ -374,16 +388,25 @@ public class World : Game
 
         var (body, health, hurtbox, fsm, _) = BuildEnemyBase(position, new Vector2(28, 48), maxHealth: 10, Color.IndianRed);
 
-        var meleeHitbox = new Hitbox { Owner = body, Damage = 1, Size = new Vector2(24, 20), Tag = "EnemyMelee" };
+        var meleeHitbox = new Hitbox
+        {
+            Owner = body,
+            Damage = 1,
+            Size = new Vector2(24, 20),
+            Tag = "EnemyMelee",
+            Knockback = new Vector2(120f, 0f)
+        };
         _scene.AddHitbox(meleeHitbox);
 
         var vision = new VisionCone { Range = 220f, HalfAngleDegrees = 60f };
 
         fsm.AddState("Idle", new IdleState { Vision = vision, NextState = "Patrol" });
         fsm.AddState("Patrol", new PatrolState { LeftBound = leftBound, RightBound = rightBound, Speed = 60f, Vision = vision });
-        fsm.AddState("Chase", new ChaseState { Speed = 140f, AttackRange = 30f });
+        fsm.AddState("Chase", new ChaseState { Speed = 140f, AttackRange = 30f, CanThrowAtRange = true });
         fsm.AddState("Attack", new AttackState { Hitbox = meleeHitbox, AttackRange = 30f, AttackDuration = 0.4f, ActiveWindowStart = 0.12f, ActiveWindowEnd = 0.25f });
         fsm.AddState("Stagger", new StaggerState { Duration = 0.3f, RecoverToState = "Chase" });
+        fsm.AddState("Return", new ReturnState());
+        fsm.AddState("RockThrow", new RockThrowState());
 
         health.OnDamaged += (amount, source) =>
         {
@@ -425,16 +448,25 @@ public class World : Game
     {
         var (body, health, hurtbox, fsm, _) = BuildEnemyBase(position, new Vector2(36, 48), maxHealth: 10, Color.SlateGray);
 
-        var spearHitbox = new Hitbox { Owner = body, Damage = 1, Size = new Vector2(46, 16), Tag = "EnemyMelee" };
+        var spearHitbox = new Hitbox
+        {
+            Owner = body,
+            Damage = 1,
+            Size = new Vector2(46, 16),
+            Tag = "EnemyMelee",
+            Knockback = new Vector2(160f, 0f)
+        };
         _scene.AddHitbox(spearHitbox);
 
         var vision = new VisionCone { Range = 200f, HalfAngleDegrees = 60f };
 
         fsm.AddState("Idle", new IdleState { Vision = vision, NextState = "Patrol" });
         fsm.AddState("Patrol", new PatrolState { LeftBound = leftBound, RightBound = rightBound, Speed = 30f, Vision = vision });
-        fsm.AddState("Chase", new ChaseState { Speed = 50f, AttackRange = 48f });
+        fsm.AddState("Chase", new ChaseState { Speed = 50f, AttackRange = 48f, CanThrowAtRange = true });
         fsm.AddState("Attack", new AttackState { Hitbox = spearHitbox, AttackRange = 48f, AttackDuration = 0.6f, ActiveWindowStart = 0.2f, ActiveWindowEnd = 0.4f });
         fsm.AddState("Stagger", new StaggerState { Duration = 0.4f, RecoverToState = "Chase" });
+        fsm.AddState("Return", new ReturnState());
+        fsm.AddState("RockThrow", new RockThrowState());
 
         health.OnDamaged += (amount, source) =>
         {

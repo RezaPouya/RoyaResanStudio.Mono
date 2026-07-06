@@ -1,4 +1,4 @@
-﻿namespace RoyaResan.Mono2d.AI.States;
+namespace RoyaResan.Mono2d.AI.States;
 
 public class PatrolState : EnemyState
 {
@@ -12,10 +12,16 @@ public class PatrolState : EnemyState
     /// <summary>Optional - if set, uses full cone + line-of-sight + target visibility instead of a plain distance check. FacingDirection is kept in sync with patrol movement automatically.</summary>
     public VisionCone Vision;
 
+    /// <summary>Distance at which "lingering nearby" starts counting, regardless of facing - see EnemyState.CheckProximityAlert.</summary>
+    public float ProximityRange = 48f;
+
+    /// <summary>Seconds the target must stay within ProximityRange before this enemy notices it without needing line of sight.</summary>
+    public float ProximityAlertTime = 1.2f;
+
     /// <summary>
     /// If true (default), the enemy turns around instead of walking off a
-    /// ledge - checked by casting straight down from a point just ahead
-    /// of its feet each frame. Requires Machine.World to be set (see
+    /// ledge - checked each frame by testing for solid ground just past
+    /// its leading edge. Requires Machine.World to be set (see
     /// EnemyFsm.World); if it isn't, edge avoidance is silently skipped
     /// and the enemy behaves as before (can walk off ledges).
     /// </summary>
@@ -42,7 +48,7 @@ public class PatrolState : EnemyState
         if (body.GlobalPosition.X <= LeftBound) _direction = 1;
         if (body.GlobalPosition.X >= RightBound) _direction = -1;
 
-        if (AvoidEdges && Machine.World != null && !GroundAheadOf(body, _direction))
+        if (AvoidEdges && Machine.World != null && !GroundAheadOf(Machine.World, body, _direction, EdgeCheckAhead, EdgeCheckDepth))
             _direction *= -1;
 
         body.Velocity = new Vector2(_direction * Speed, body.Velocity.Y);
@@ -66,6 +72,12 @@ public class PatrolState : EnemyState
             ? Vision.CanSee(Machine.World, Machine.Body, group.Target)
             : Vector2.Distance(body.GlobalPosition, group.Target.GlobalPosition) <= VisionRange;
 
+        if (!spotted)
+        {
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            spotted = CheckProximityAlert(group.Target, ProximityRange, ProximityAlertTime, dt);
+        }
+
         if (spotted)
         {
             group.RaiseAlert(group.Target);
@@ -74,23 +86,39 @@ public class PatrolState : EnemyState
     }
 
     /// <summary>
-    /// Casts straight down from a point just past the enemy's leading edge
-    /// (in the direction it's currently walking) to see if there's ground
-    /// there. Only static geometry counts as "ground" here, matching how
-    /// PhysicsWorld itself only sweeps dynamic bodies against static
-    /// colliders - this also naturally covers moving platforms, since
-    /// they're marked IsStatic too.
+    /// Direct AABB probe for solid ground just past the enemy's leading
+    /// edge, in the direction it's currently moving - internal, static so
+    /// ChaseState can reuse the exact same check. Deliberately NOT a
+    /// raycast: it mirrors the xOverlaps/yOverlaps pattern PhysicsWorld's
+    /// own sweep already uses, which sidesteps a subtle float/int
+    /// truncation edge case in the general-purpose Raycast helper's
+    /// point-in-rect test that could misfire exactly at the pixel a body
+    /// is resting on - the case that matters most here.
     /// </summary>
-    private bool GroundAheadOf(PhysicsBody body, int direction)
+    internal static bool GroundAheadOf(PhysicsWorld world, PhysicsBody body, int direction, float ahead, float depth)
     {
         float halfWidth = (body.Collider?.Size.X ?? 32f) / 2f;
         float halfHeight = (body.Collider?.Size.Y ?? 32f) / 2f;
 
-        Vector2 origin = new Vector2(
-            body.GlobalPosition.X + direction * (halfWidth + EdgeCheckAhead),
-            body.GlobalPosition.Y + halfHeight - 2f); // just above the feet, so the probe starts outside ground already stood on
+        float probeX = body.GlobalPosition.X + direction * (halfWidth + ahead);
+        float feetY = body.GlobalPosition.Y + halfHeight;
+        float probeBottom = feetY + depth;
 
-        return Raycast.Cast(Machine.World, origin, Vector2.UnitY, EdgeCheckDepth, out _, b => b.IsStatic, ignore: body);
+        foreach (var other in world.Bodies)
+        {
+            if (other == body || other.Collider == null || !other.IsStatic)
+                continue; // only static geometry counts as "ground" - matches PhysicsWorld's own sweep, and naturally covers moving platforms too since they're marked IsStatic
+
+            var bounds = other.Collider.Bounds;
+
+            bool xOverlaps = probeX > bounds.Left && probeX < bounds.Right;
+            bool yOverlaps = feetY <= bounds.Bottom && probeBottom >= bounds.Top;
+
+            if (xOverlaps && yOverlaps)
+                return true;
+        }
+
+        return false;
     }
 
     public override void Exit()

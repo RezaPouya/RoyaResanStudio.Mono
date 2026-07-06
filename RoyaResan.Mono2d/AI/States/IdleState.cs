@@ -12,6 +12,12 @@ public class IdleState : EnemyState
 
     public string NextState = "Chase";
 
+    /// <summary>Distance at which "lingering nearby" starts counting, regardless of facing - see EnemyState.CheckProximityAlert.</summary>
+    public float ProximityRange = 48f;
+
+    /// <summary>Seconds the target must stay within ProximityRange before this enemy notices it without needing line of sight.</summary>
+    public float ProximityAlertTime = 1.2f;
+
     public override void Enter() => Machine.Animator?.Play(AnimationState, 0.1f);
 
     public override void Update(GameTime gameTime)
@@ -29,6 +35,12 @@ public class IdleState : EnemyState
         bool spotted = Vision != null && Machine.World != null
             ? Vision.CanSee(Machine.World, Machine.Body, group.Target)
             : Vector2.Distance(Machine.Body.GlobalPosition, group.Target.GlobalPosition) <= VisionRange;
+
+        if (!spotted)
+        {
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            spotted = CheckProximityAlert(group.Target, ProximityRange, ProximityAlertTime, dt);
+        }
 
         if (spotted)
         {

@@ -17,6 +17,23 @@ public class Hitbox
 
     public int Damage = 10;
 
+    /// <summary>
+    /// Horizontal magnitude (X) and vertical pop (Y) applied to the
+    /// defender's velocity on a successful (non-blocked, non-parried)
+    /// hit. X is a magnitude, not a signed direction - CombatWorld works
+    /// out which way to push based on attacker/defender relative
+    /// position, so you don't need to know facing when setting this.
+    /// Y is applied as-is (negative = upward pop); leave at 0 for a
+    /// purely horizontal shove. Zero (default) = no knockback at all,
+    /// so existing hitboxes are unaffected unless you opt in.
+    /// Set per instance, so a sword can knock back harder than a kunai,
+    /// a heavy enemy's attack harder than a light one, etc.
+    /// </summary>
+    public Vector2 Knockback;
+
+    /// <summary>Same shape as Knockback, but applied to the ATTACKER (recoil) instead of the defender - pushed the opposite direction. 0 (default) = no recoil.</summary>
+    public Vector2 SelfKnockback;
+
     /// <summary>Optional free-form label ("Sword", "Kunai", ...) - lets a Hurtbox block by attack type via BlockedTags instead of just on/off (see the Shield enemy's directional block).</summary>
     public string Tag;
 

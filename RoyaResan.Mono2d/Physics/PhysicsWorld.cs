@@ -10,15 +10,6 @@ namespace RoyaResan.Mono2d.Physics
             foreach (var rope in Ropes)
                 rope.Step();
 
-            // Clear grounded/standing - re-set below for whatever's
-            // actually resting on something this step.
-            foreach (var body in Bodies)
-                if (!body.IsStatic)
-                {
-                    body.IsGrounded = false;
-                    body.StandingOn = null;
-                }
-
             // KINEMATIC PLATFORMS MOVE FIRST
             //
             // Moving platforms advance their own position before anything
@@ -26,6 +17,12 @@ namespace RoyaResan.Mono2d.Physics
             // used both to carry riders standing on top and to shove aside
             // any character the platform moves into from the side (crushing
             // it against a wall if there's nowhere to go).
+            //
+            // PushSideways below reads body.StandingOn to skip genuine
+            // riders (they're carried separately, in full, below) - that
+            // has to be each body's StandingOn as of the END of LAST step,
+            // since this step hasn't recomputed it yet. Do not clear
+            // StandingOn/IsGrounded anywhere before this loop runs.
             foreach (var body in Bodies)
             {
                 if (!body.IsStatic || !body.IsMovingPlatform)
@@ -54,14 +51,30 @@ namespace RoyaResan.Mono2d.Physics
                 if (body.IsStatic || body.Collider == null)
                     continue;
 
-                // Carry: if resting on a moving platform, ride along with
-                // its delta this step (any direction) before our own
-                // gravity/input movement is applied below.
-                if (body.StandingOn != null && body.StandingOn.IsMovingPlatform)
+                // Carry: if currently resting on a moving platform, ride
+                // along with its delta this step (any direction) before
+                // our own gravity/input movement is applied below.
+                //
+                // Deliberately re-checked geometrically every step (who's
+                // directly under my feet right now) instead of trusting
+                // last step's StandingOn flag - a flag surviving cleanly
+                // across the platform-advance loop above and this loop
+                // is an easy thing to break (it WAS broken - StandingOn
+                // was being cleared before anything read it). A fresh
+                // geometric check has no such cross-step dependency.
+                var supportingPlatform = FindSupportingPlatform(body);
+                if (supportingPlatform != null)
                 {
-                    Vector2 platformDelta = body.StandingOn.Position - body.StandingOn.PreviousPosition;
+                    Vector2 platformDelta = supportingPlatform.Position - supportingPlatform.PreviousPosition;
                     body.Position += platformDelta;
                 }
+
+                // Cleared here, re-set fresh by the sweep below - so
+                // IsGrounded/StandingOn (read by scripts across frames,
+                // e.g. coyote time) always reflect where the body actually
+                // ends up this step, independent of the carry check above.
+                body.IsGrounded = false;
+                body.StandingOn = null;
 
                 if (body.UseGravity)
                     body.Velocity.Y += PhysicsSettings.Gravity * dt;
@@ -86,6 +99,44 @@ namespace RoyaResan.Mono2d.Physics
 
             foreach (var body in Bodies)
                 body.PreviousPosition = body.Position;
+        }
+
+        /// <summary>
+        /// Direct, same-step geometric check for "is this body currently
+        /// resting on top of a moving platform" - used to drive carry.
+        /// Checked fresh every step rather than trusting a flag set by a
+        /// previous step's sweep, which is what carry used to rely on and
+        /// what made it fragile enough to silently stop working. Uses a
+        /// small vertical tolerance since a body resting on a platform
+        /// won't sit at an exact float-equal Y every frame.
+        /// </summary>
+        private PhysicsBody FindSupportingPlatform(PhysicsBody body)
+        {
+            if (body.Collider == null)
+                return null;
+
+            float halfWidth = body.Collider.Size.X / 2f;
+            float halfHeight = body.Collider.Size.Y / 2f;
+            float feetY = body.Position.Y + halfHeight;
+
+            const float tolerance = 4f;
+
+            foreach (var other in Bodies)
+            {
+                if (other == body || !other.IsStatic || !other.IsMovingPlatform || other.Collider == null)
+                    continue;
+
+                var bounds = other.Collider.Bounds;
+
+                bool xOverlaps = body.Position.X + halfWidth > bounds.Left && body.Position.X - halfWidth < bounds.Right;
+                if (!xOverlaps)
+                    continue;
+
+                if (Math.Abs(feetY - bounds.Top) <= tolerance)
+                    return other;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -317,6 +368,19 @@ namespace RoyaResan.Mono2d.Physics
                 return;
 
             if (a.IsStatic || b.IsStatic)
+                return;
+
+            // Enemies deliberately do NOT physically push each other. This
+            // is what actually eliminates the "conga line shoves the front
+            // enemy off a ledge" problem - not edge detection (an enemy
+            // avoiding a ledge on its own can still be shoved into it by
+            // whoever's behind it). Spacing between enemies is handled by
+            // steering instead - see EnemyState.ComputeSeparation, used by
+            // ChaseState - which is also the more common approach in
+            // action platformers generally (Hollow Knight/Dead
+            // Cells/Hades-style: same-faction actors don't collide, they
+            // steer clear of each other and reserve attack slots).
+            if (a.Team == "Enemy" && b.Team == "Enemy")
                 return;
 
             Rectangle A = a.Collider.Bounds;

@@ -24,6 +24,14 @@ public class EnemyFsm
     /// <summary>Optional - needed by DeadState (despawn) and RangedAttackState (spawning a projectile).</summary>
     public Core.Scene Scene;
 
+    /// <summary>
+    /// Where this enemy spawned - set once by wiring code right after
+    /// construction. Read by ReturnState to walk back after losing the
+    /// target, so patrol enemies don't end up permanently camped wherever
+    /// the chase happened to end.
+    /// </summary>
+    public Vector2 HomePosition;
+
     /// <summary>Shared facing direction, kept in sync by PatrolState/ChaseState. Read by anything that needs "which way is this enemy looking" without owning its own copy - ShieldBlockScript, projectile aim, etc.</summary>
     public Vector2 FacingDirection = Vector2.UnitX;
 

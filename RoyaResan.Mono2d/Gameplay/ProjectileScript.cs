@@ -67,7 +67,14 @@ public class ProjectileScript : Script
         float traveled = Vector2.Distance(Owner.Position, _spawnPosition);
         bool stoppedByWall = _armed && Math.Abs(Owner.Velocity.X) < StoppedSpeedThreshold;
 
-        if (Hitbox.HasHitAnyTarget || _age >= Lifetime || traveled >= MaxDistance || stoppedByWall)
+        // Covers gravity-affected projectiles (e.g. a thrown rock) that
+        // land on the ground: their horizontal speed doesn't necessarily
+        // drop the way a shot stopped dead by a wall does, but landing
+        // sets IsGrounded via the normal sweep, so that's the reliable
+        // signal for "hit the ground" here.
+        bool landedOnGround = _armed && Owner.IsGrounded;
+
+        if (Hitbox.HasHitAnyTarget || _age >= Lifetime || traveled >= MaxDistance || stoppedByWall || landedOnGround)
         {
             Scene.RemoveHitbox(Hitbox);
             Scene.RemoveBody(Owner);

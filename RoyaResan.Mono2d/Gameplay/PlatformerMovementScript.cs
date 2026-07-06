@@ -29,21 +29,21 @@ namespace RoyaResan.Mono2d.Gameplay;
 /// </summary>
 public class PlatformerMovementScript : Script
 {
-    public float MoveSpeed = 300f;
+    public float MoveSpeed = 220f;
     public float Acceleration = 1600f;
-    public float Deceleration = 2500f;
+    public float Deceleration = 2000f;
 
     /// <summary>Initial upward speed applied on jump (positive value; applied to Velocity.Y as negative).</summary>
-    public float JumpVelocity = 440f;
+    public float JumpVelocity = 420f;
 
-    public float CoyoteTime = 0.15f;
+    public float CoyoteTime = 0.1f;
     public float JumpBufferTime = 0.12f;
 
     /// <summary>Extra gravity multiplier while rising and jump is NOT held - lets a tapped jump cut short instead of always reaching full height.</summary>
-    public float LowJumpGravityMultiplier = 2.7f;
+    public float LowJumpGravityMultiplier = 2.5f;
 
     /// <summary>Extra gravity multiplier while falling - snappier descent than a symmetric arc.</summary>
-    public float FallGravityMultiplier = 2.8f;
+    public float FallGravityMultiplier = 2.6f;
 
 
 

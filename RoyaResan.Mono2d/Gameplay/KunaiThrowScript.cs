@@ -29,8 +29,11 @@ public class KunaiThrowScript : Script
     public int Ammo = 100;
     public int MaxAmmo = 200;
 
-    public float ThrowSpeed = 750f;
+    public float ThrowSpeed = 500f;
     public float Cooldown = 0.50f;
+
+    /// <summary>Knockback applied to whatever a thrown kunai hits - see Hitbox.Knockback. Light by default; a stronger throw could set this per-item if you add throwable variety later.</summary>
+    public Vector2 Knockback = new Vector2(60f, 0f);
 
     /// <summary>Fires whenever Ammo changes - wire a HUD label to this instead of polling.</summary>
     public event Action<int> OnAmmoChanged;
@@ -88,7 +91,8 @@ public class KunaiThrowScript : Script
             Owner = kunaiBody,
             Damage = 3,
             Size = new Vector2(10f, 6f),
-            Tag = "Kunai"
+            Tag = "Kunai",
+            Knockback = Knockback
         };
 
         // Remember the real owner (player) so damage events know who attacked
