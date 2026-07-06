@@ -515,8 +515,6 @@ public class World : Game
         shieldBody.AddScript(new ShieldBlockScript
         {
             Fsm = fsm,
-            MainHurtbox = hurtbox,          // the body hurtbox
-            ShieldHurtbox = shieldHurtbox,  // the shield hurtbox
             Player = _player
         });
 
