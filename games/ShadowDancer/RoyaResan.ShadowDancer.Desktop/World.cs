@@ -321,11 +321,11 @@ public class World : Game
     private void BuildEnemies()
     {
         _enemyGroup = new CombatGroup { Target = _player, MaxSimultaneousAttackers = 1 };
-        //BuildMeleeEnemy(new Vector2(500, 444), leftBound: 450, rightBound: 650);
+        BuildMeleeEnemy(new Vector2(500, 444), leftBound: 450, rightBound: 650);
         //BuildMeleeEnemy(new Vector2(900, 444), leftBound: 850, rightBound: 1050);
         //BuildMeleeEnemy(new Vector2(1300, 444), leftBound: 1250, rightBound: 1450);
 
-        //BuildRangedEnemy(new Vector2(1100, 444));
+        BuildRangedEnemy(new Vector2(1100, 444));
 
         BuildShieldEnemy(new Vector2(700, 444), leftBound: 650, rightBound: 780);
     }
@@ -448,7 +448,7 @@ public class World : Game
     private void BuildShieldEnemy(Vector2 position, float leftBound, float rightBound)
     {
         // Build base enemy (body, main hurtbox, FSM, etc.)
-        var (body, health, hurtbox, fsm, _) = BuildEnemyBase(position, new Vector2(36, 48), maxHealth: 100, Color.SlateGray);
+        var (body, health, hurtbox, fsm, _) = BuildEnemyBase(position, new Vector2(36, 48), maxHealth: 10, Color.SlateGray);
 
         // ---- Weapon hitbox (spear) ----
         var spearHitbox = new Hitbox
