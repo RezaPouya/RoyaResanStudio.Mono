@@ -116,7 +116,8 @@ public class PatrolState : EnemyState
             var bounds = other.Collider.Bounds;
 
             bool xOverlaps = probeX > bounds.Left && probeX < bounds.Right;
-            bool yOverlaps = feetY <= bounds.Bottom && probeBottom >= bounds.Top;
+            // FIX: only count ground whose top is at or below the feet, and within the probe range
+            bool yOverlaps = bounds.Top >= feetY && bounds.Top <= probeBottom;
 
             if (xOverlaps && yOverlaps)
                 return true;
