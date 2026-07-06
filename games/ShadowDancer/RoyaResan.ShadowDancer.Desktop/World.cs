@@ -321,11 +321,11 @@ public class World : Game
     private void BuildEnemies()
     {
         _enemyGroup = new CombatGroup { Target = _player, MaxSimultaneousAttackers = 1 };
-        BuildMeleeEnemy(new Vector2(500, 444), leftBound: 450, rightBound: 650);
-        BuildMeleeEnemy(new Vector2(900, 444), leftBound: 850, rightBound: 1050);
-        BuildMeleeEnemy(new Vector2(1300, 444), leftBound: 1250, rightBound: 1450);
+        //BuildMeleeEnemy(new Vector2(500, 444), leftBound: 450, rightBound: 650);
+        //BuildMeleeEnemy(new Vector2(900, 444), leftBound: 850, rightBound: 1050);
+        //BuildMeleeEnemy(new Vector2(1300, 444), leftBound: 1250, rightBound: 1450);
 
-        BuildRangedEnemy(new Vector2(1100, 444));
+        //BuildRangedEnemy(new Vector2(1100, 444));
 
         BuildShieldEnemy(new Vector2(700, 444), leftBound: 650, rightBound: 780);
     }
@@ -447,8 +447,10 @@ public class World : Game
 
     private void BuildShieldEnemy(Vector2 position, float leftBound, float rightBound)
     {
-        var (body, health, hurtbox, fsm, _) = BuildEnemyBase(position, new Vector2(36, 48), maxHealth: 10, Color.SlateGray);
+        // Build base enemy (body, main hurtbox, FSM, etc.)
+        var (body, health, hurtbox, fsm, _) = BuildEnemyBase(position, new Vector2(36, 48), maxHealth: 100, Color.SlateGray);
 
+        // ---- Weapon hitbox (spear) ----
         var spearHitbox = new Hitbox
         {
             Owner = body,
@@ -459,16 +461,46 @@ public class World : Game
         };
         _scene.AddHitbox(spearHitbox);
 
-        var vision = new VisionCone { Range = 200f, HalfAngleDegrees = 60f };
+        // ---- Shield visual + physics body (for solidity, optional) ----
+        var shieldSize = new Vector2(12, 28);
+        var shieldOffset = new Vector2(12, -2); // local offset relative to enemy centre
+
+        var shieldVisual = new PlaceholderRectNode
+        {
+            Size = shieldSize,
+            Color = Color.Orange,
+            Position = shieldOffset
+        };
+
+        // We keep the shield as a PhysicsBody with a collider so the player can't walk through it,
+        // but we won't use its collider for kunai blocking (we use Hurtbox instead).
+        var shieldBody = new PhysicsBody { Position = shieldOffset, UseGravity = false, Team = "Enemy" };
+        shieldBody.Collider = new Collider { Owner = shieldBody, Size = shieldSize };
+        shieldBody.AddChild(shieldVisual);
+        body.AddChild(shieldBody);
+
+        // ---- Shield Hurtbox (separate from the main body hurtbox) ----
+        var shieldHurtbox = new Hurtbox
+        {
+            Owner = shieldBody,                // positioned at shield's global location
+            Size = shieldSize,
+            Health = health,                   // shares the same health (damage still goes through if kunai bypasses)
+            BlockedTags = null                 // managed by ShieldBlockScript
+        };
+        _scene.AddHurtbox(shieldHurtbox);
+
+        // ---- Enemy AI states ----
+        var vision = new VisionCone { Range = 500f, HalfAngleDegrees = 60f };
 
         fsm.AddState("Idle", new IdleState { Vision = vision, NextState = "Patrol" });
         fsm.AddState("Patrol", new PatrolState { LeftBound = leftBound, RightBound = rightBound, Speed = 30f, Vision = vision });
-        fsm.AddState("Chase", new ChaseState { Speed = 50f, AttackRange = 48f, CanThrowAtRange = true });
-        fsm.AddState("Attack", new AttackState { Hitbox = spearHitbox, AttackRange = 48f, AttackDuration = 0.6f, ActiveWindowStart = 0.2f, ActiveWindowEnd = 0.4f });
+        fsm.AddState("Chase", new ChaseState { Speed = 50f, AttackRange = 50f, CanThrowAtRange = true });
+        fsm.AddState("Attack", new AttackState { Hitbox = spearHitbox, AttackRange = 50f, AttackDuration = 0.6f, ActiveWindowStart = 0.2f, ActiveWindowEnd = 0.4f });
         fsm.AddState("Stagger", new StaggerState { Duration = 0.4f, RecoverToState = "Chase" });
         fsm.AddState("Return", new ReturnState());
         fsm.AddState("RockThrow", new RockThrowState());
 
+        // ---- Damage reaction ----
         health.OnDamaged += (amount, source) =>
         {
             if (!health.IsDead)
@@ -479,8 +511,14 @@ public class World : Game
             }
         };
 
-        // Shield blocks KUNAI (while facing the player) but always lets SWORD through
-        body.AddScript(new ShieldBlockScript { Fsm = fsm, Hurtbox = hurtbox, Player = _player });
+        // ---- ShieldBlockScript – attaches to the enemy's MAIN body, manages both hurtboxes ----
+        shieldBody.AddScript(new ShieldBlockScript
+        {
+            Fsm = fsm,
+            MainHurtbox = hurtbox,          // the body hurtbox
+            ShieldHurtbox = shieldHurtbox,  // the shield hurtbox
+            Player = _player
+        });
 
         fsm.ChangeState("Idle", force: true);
     }
