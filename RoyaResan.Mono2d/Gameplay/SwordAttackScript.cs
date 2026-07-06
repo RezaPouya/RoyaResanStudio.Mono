@@ -27,15 +27,13 @@ public class SwordAttackScript : Script
     public PlatformerMovementScript Movement;
     public Animator Animator;
 
-    public Keys AttackKey = Keys.J;
-
     /// <summary>Full time before another attack can start - matches the design doc's 0.35s cadence.</summary>
     public float Cooldown = 0.35f;
 
     /// <summary>How long within that cooldown the hitbox is actually Active (the "active frames").</summary>
     public float ActiveDuration = 0.12f;
 
-    public Vector2 ForwardOffset = new Vector2(20f, 0f);
+    public Vector2 ForwardOffset = new Vector2(10f, 0f);
     public Vector2 Size = new Vector2(28f, 20f);
 
     /// <summary>True for the whole attack pose duration (ActiveDuration), not just while Hitbox.Active - lets an Animator transition rule yield to the Attack state while this is true and resume normal movement states once it's false.</summary>

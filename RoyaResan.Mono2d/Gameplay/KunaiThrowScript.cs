@@ -25,15 +25,15 @@ public class KunaiThrowScript : Script
     public Animator Animator;
 
 
-    public int Damage = 1;
-    public int Ammo = 100;
-    public int MaxAmmo = 200;
+    public int Damage = 3;
+    public int Ammo = 50;
+    public int MaxAmmo = 100;
 
-    public float ThrowSpeed = 500f;
-    public float Cooldown = 0.50f;
+    public float ThrowSpeed = 700f;
+    public float Cooldown = 0.75f;
 
     /// <summary>Knockback applied to whatever a thrown kunai hits - see Hitbox.Knockback. Light by default; a stronger throw could set this per-item if you add throwable variety later.</summary>
-    public Vector2 Knockback = new Vector2(60f, 0f);
+    public Vector2 Knockback = new Vector2(10f, 0f);
 
     /// <summary>Fires whenever Ammo changes - wire a HUD label to this instead of polling.</summary>
     public event Action<int> OnAmmoChanged;
@@ -79,7 +79,7 @@ public class KunaiThrowScript : Script
         bool facingRight = Movement?.FacingRight ?? true;
 
         var kunaiBody = new PhysicsBody { UseGravity = false };
-        kunaiBody.Position = Owner.Position + new Vector2(facingRight ? 25f : -25f, -6f);
+        kunaiBody.Position = Owner.Position + new Vector2(facingRight ? 35f : -35f, -8f);
 
         kunaiBody.Collider = new Collider { Owner = kunaiBody, Size = new Vector2(10f, 6f) };
 
@@ -107,7 +107,7 @@ public class KunaiThrowScript : Script
             Scene = Scene,
             Hitbox = hitbox,
             Lifetime = 2.5f,           // Longer lifetime
-            StoppedSpeedThreshold = 10f
+            StoppedSpeedThreshold = 5f
         });
 
         Ammo--;

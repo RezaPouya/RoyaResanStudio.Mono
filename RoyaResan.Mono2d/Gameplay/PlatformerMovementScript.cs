@@ -29,12 +29,12 @@ namespace RoyaResan.Mono2d.Gameplay;
 /// </summary>
 public class PlatformerMovementScript : Script
 {
-    public float MoveSpeed = 220f;
+    public float MoveSpeed = 250f;
     public float Acceleration = 1600f;
     public float Deceleration = 2000f;
 
     /// <summary>Initial upward speed applied on jump (positive value; applied to Velocity.Y as negative).</summary>
-    public float JumpVelocity = 420f;
+    public float JumpVelocity = 580f;
 
     public float CoyoteTime = 0.1f;
     public float JumpBufferTime = 0.12f;
