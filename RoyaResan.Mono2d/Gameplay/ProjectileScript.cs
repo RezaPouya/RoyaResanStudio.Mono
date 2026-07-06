@@ -39,11 +39,11 @@ public class ProjectileScript : Script
     public Scene Scene;
     public Hitbox Hitbox;
 
-    public float Lifetime = 2f;
-    public float MaxDistance = 600f;
+    public float Lifetime = 3f;
+    public float MaxDistance = 700f;
 
     /// <summary>Below this horizontal speed (after having been launched), the projectile is considered "stopped by something solid."</summary>
-    public float StoppedSpeedThreshold = 20f;
+    public float StoppedSpeedThreshold = 5f;
 
     private Vector2 _spawnPosition;
     private float _age;

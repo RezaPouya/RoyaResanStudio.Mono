@@ -58,7 +58,7 @@ public class RangedAttackState : EnemyState
         if (AvoidEdges && Machine.World != null)
         {
             int dir = Math.Sign(moveX);
-            if (dir != 0 && !PatrolState.GroundAheadOf(Machine.World, Machine.Body, dir, 18f, 25f))
+            if (dir != 0 && !PatrolState.GroundAheadOf(Machine.World, Machine.Body, dir, 25f, 30f))
                 moveX = 0f;  // Stop instead of falling
         }
 
