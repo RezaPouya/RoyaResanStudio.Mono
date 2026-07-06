@@ -461,33 +461,17 @@ public class World : Game
         };
         _scene.AddHitbox(spearHitbox);
 
-        // ---- Shield visual + physics body (for solidity, optional) ----
-        var shieldSize = new Vector2(12, 28);
-        var shieldOffset = new Vector2(12, -2); // local offset relative to enemy centre
-
+        // ---- Shield: purely cosmetic facing indicator now, no physics/collider/hurtbox of its own ----
+        // Just a visual child node so you can see which way the enemy is facing.
+        // Kunai blocking is handled entirely by ShieldBlockScript toggling the
+        // MAIN body's Hurtbox.BlockedTags below - no separate physical shield.
         var shieldVisual = new PlaceholderRectNode
         {
-            Size = shieldSize,
+            Size = new Vector2(12, 28),
             Color = Color.Orange,
-            Position = shieldOffset
+            Position = new Vector2(12, -2) // local offset relative to enemy centre
         };
-
-        // We keep the shield as a PhysicsBody with a collider so the player can't walk through it,
-        // but we won't use its collider for kunai blocking (we use Hurtbox instead).
-        var shieldBody = new PhysicsBody { Position = shieldOffset, UseGravity = false, Team = "Enemy" };
-        shieldBody.Collider = new Collider { Owner = shieldBody, Size = shieldSize };
-        shieldBody.AddChild(shieldVisual);
-        body.AddChild(shieldBody);
-
-        // ---- Shield Hurtbox (separate from the main body hurtbox) ----
-        var shieldHurtbox = new Hurtbox
-        {
-            Owner = shieldBody,                // positioned at shield's global location
-            Size = shieldSize,
-            Health = health,                   // shares the same health (damage still goes through if kunai bypasses)
-            BlockedTags = null                 // managed by ShieldBlockScript
-        };
-        _scene.AddHurtbox(shieldHurtbox);
+        body.AddChild(shieldVisual);
 
         // ---- Enemy AI states ----
         var vision = new VisionCone { Range = 500f, HalfAngleDegrees = 60f };
@@ -511,11 +495,15 @@ public class World : Game
             }
         };
 
-        // ---- ShieldBlockScript – attaches to the enemy's MAIN body, manages both hurtboxes ----
-        shieldBody.AddScript(new ShieldBlockScript
+        // ---- ShieldBlockScript – attaches to the enemy's MAIN body, toggles the MAIN hurtbox's BlockedTags ----
+        body.AddScript(new ShieldBlockScript
         {
             Fsm = fsm,
-            Player = _player
+            Player = _player,
+            Hurtbox = hurtbox,
+            BlockRange = 600f, // effectively "as far as a kunai can reach" - facing is what actually gates the block
+            ShieldVisual = shieldVisual,
+            ShieldVisualOffsetX = 12f
         });
 
         fsm.ChangeState("Idle", force: true);

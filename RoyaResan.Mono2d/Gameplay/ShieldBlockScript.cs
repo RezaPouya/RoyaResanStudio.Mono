@@ -19,12 +19,28 @@ public class ShieldBlockScript : Script
     /// <summary>Maximum distance at which the shield will block kunai.</summary>
     public float BlockRange = 1f;
 
+    /// <summary>
+    /// Optional purely-cosmetic visual (e.g. the placeholder rect showing
+    /// which way the shield/spear enemy is facing). If set, its local X
+    /// offset is flipped to match Fsm.FacingDirection every frame - pass
+    /// the offset it should sit at when facing right (positive X); it
+    /// will be mirrored automatically when facing left.
+    /// </summary>
+    public TransformNode ShieldVisual;
+    public float ShieldVisualOffsetX;
+
     private static readonly HashSet<string> BlockKunai = new() { "Kunai" };
 
     public override void Update(GameTime gameTime)
     {
         if (Player == null || Hurtbox == null || Fsm == null)
             return;
+
+        if (ShieldVisual != null)
+        {
+            float facingSign = Fsm.FacingDirection.X >= 0f ? 1f : -1f;
+            ShieldVisual.Position = new Vector2(facingSign * Math.Abs(ShieldVisualOffsetX), ShieldVisual.Position.Y);
+        }
 
         // No blocking while staggered or dead
         if (Fsm.CurrentStateName == "Stagger" || Fsm.CurrentStateName == "Dead")

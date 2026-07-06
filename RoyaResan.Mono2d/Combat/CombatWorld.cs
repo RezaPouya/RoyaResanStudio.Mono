@@ -56,19 +56,6 @@ public class CombatWorld
                 if (hurtbox.Invulnerable)
                     continue; // i-frames - e.g. mid-roll, per HurtboxProfile
 
-                if (hurtbox.BlockedTags != null && hitbox.Tag != null && hurtbox.BlockedTags.Contains(hitbox.Tag))
-                {
-                    // Blocked (e.g. shield up) - no damage, but still mark
-                    // it as resolved against THIS target. Without this, a
-                    // projectile's HasHitAnyTarget never becomes true when
-                    // it's blocked, so it just keeps flying at full speed
-                    // and can go on to hit whoever is standing behind the
-                    // shield in the same frame or the next one.
-                    hitbox.MarkHit(hurtbox);
-                    OnBlocked?.Invoke(hitbox, hurtbox);
-                    continue;
-                }
-
                 if (hitbox.HasHit(hurtbox))
                     continue; // already resolved this swing
 
@@ -85,6 +72,21 @@ public class CombatWorld
                 if (!SweptCollision.SegmentIntersectsRect(sweepStart, currentCenter, expanded))
                     continue;
 
+                // ---- FIX: BlockedTags check now runs AFTER the overlap test ----
+                if (hurtbox.BlockedTags != null && hitbox.Tag != null && hurtbox.BlockedTags.Contains(hitbox.Tag))
+                {
+                    // Blocked (e.g. shield up) - no damage, but still mark
+                    // it as resolved against THIS target. Without this, a
+                    // projectile's HasHitAnyTarget never becomes true when
+                    // it's blocked, so it just keeps flying at full speed
+                    // and can go on to hit whoever is standing behind the
+                    // shield in the same frame or the next one.
+                    hitbox.MarkHit(hurtbox);
+                    OnBlocked?.Invoke(hitbox, hurtbox);
+                    continue;
+                }
+
+                // If not blocked, apply hit effects
                 hitbox.MarkHit(hurtbox);
 
                 if (hurtbox.IsParrying)
