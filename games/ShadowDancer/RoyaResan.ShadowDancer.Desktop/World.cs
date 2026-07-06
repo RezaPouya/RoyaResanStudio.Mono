@@ -133,6 +133,7 @@ public class World : Game
 
         // Step platform (unchanged)
         var stepPlatform = new OneWayPlatformNode();
+        stepPlatform.OneWay = false;
         stepPlatform.Position = new Vector2(400, 400);
         _scene.AddBody(stepPlatform);
         stepPlatform.AddChild(new PlaceholderRectNode { Size = new Vector2(64, 16), Color = Color.SaddleBrown });
