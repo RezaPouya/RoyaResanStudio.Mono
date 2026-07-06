@@ -106,8 +106,12 @@ public class PatrolState : EnemyState
 
         foreach (var other in world.Bodies)
         {
-            if (other == body || other.Collider == null || !other.IsStatic)
-                continue; // only static geometry counts as "ground" - matches PhysicsWorld's own sweep, and naturally covers moving platforms too since they're marked IsStatic
+            if (other == body || other.Collider == null)
+                continue;
+
+            // Include both static AND moving platforms
+            if (!other.IsStatic && !other.IsMovingPlatform)
+                continue;
 
             var bounds = other.Collider.Bounds;
 

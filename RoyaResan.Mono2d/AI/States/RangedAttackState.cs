@@ -50,7 +50,6 @@ public class RangedAttackState : EnemyState
         if (Vision != null)
             Vision.FacingDirection = Machine.FacingDirection;
 
-        // Keep distance with strong edge avoidance
         float moveX = 0f;
         if (dist < PreferredDistance && Math.Abs(toTarget.X) > 20f)
             moveX = -Math.Sign(toTarget.X) * MoveSpeed;
@@ -58,8 +57,8 @@ public class RangedAttackState : EnemyState
         if (AvoidEdges && Machine.World != null)
         {
             int dir = Math.Sign(moveX);
-            if (dir != 0 && !PatrolState.GroundAheadOf(Machine.World, Machine.Body, dir, 25f, 30f))
-                moveX = 0f;  // Stop instead of falling
+            if (dir != 0 && !PatrolState.GroundAheadOf(Machine.World, Machine.Body, dir, 45f, 40f))
+                moveX = 0f;
         }
 
         Machine.Body.Velocity = new Vector2(moveX, Machine.Body.Velocity.Y);
@@ -72,21 +71,13 @@ public class RangedAttackState : EnemyState
         }
     }
 
-    /// <summary>
-    /// Zero horizontal velocity on leaving this state - matches
-    /// PatrolState.Exit(). Without this, an enemy that loses sight of the
-    /// target mid-retreat (Update above calls ChangeState("Idle")) carries
-    /// its retreat velocity straight into Idle, which never checks edges
-    /// or touches Velocity, and just keeps coasting until it walks off
-    /// whatever ledge it was carefully avoiding a moment ago.
-    /// </summary>
     public override void Exit()
     {
         Machine.Body.Velocity = new Vector2(0, Machine.Body.Velocity.Y);
     }
 
     private void Fire(Vector2 aimDir)
-    { /* same as previous version */
+    {
         if (Machine.Scene == null) return;
         var body = Machine.Body;
         var shot = new PhysicsBody { UseGravity = ProjectileUseGravity, Team = "Enemy" };
