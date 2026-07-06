@@ -7,22 +7,11 @@ namespace RoyaResan.Mono2d.Physics
 
         public void Step(float dt)
         {
+            // 1. Update ropes
             foreach (var rope in Ropes)
                 rope.Step();
 
-            // KINEMATIC PLATFORMS MOVE FIRST
-            //
-            // Moving platforms advance their own position before anything
-            // else happens this step, so their delta is known and can be
-            // used both to carry riders standing on top and to shove aside
-            // any character the platform moves into from the side (crushing
-            // it against a wall if there's nowhere to go).
-            //
-            // PushSideways below reads body.StandingOn to skip genuine
-            // riders (they're carried separately, in full, below) - that
-            // has to be each body's StandingOn as of the END of LAST step,
-            // since this step hasn't recomputed it yet. Do not clear
-            // StandingOn/IsGrounded anywhere before this loop runs.
+            // 2. Advance kinematic platforms (moving platforms) – they move first
             foreach (var body in Bodies)
             {
                 if (!body.IsStatic || !body.IsMovingPlatform)
@@ -39,67 +28,68 @@ namespace RoyaResan.Mono2d.Physics
                     PushVertically(body, delta);
             }
 
-            // INTEGRATION + SWEPT MOVE (per dynamic body, against static geometry)
-            //
-            // Separate-axis swept move: resolve X first, then Y, each one
-            // clipping the requested movement to the exact point of
-            // contact rather than moving the full distance and correcting
-            // overlap afterward. This is what actually prevents a fast
-            // body (a hard fall, a dash, knockback) from tunneling
-            // through a thin wall/floor/one-way platform between steps -
-            // it holds regardless of how large a single step's movement
-            // gets, not just "usually fine at today's speeds."
+            // 3. Dynamic bodies: carry, gravity, swept movement
             foreach (var body in Bodies)
             {
                 if (body.IsStatic || body.Collider is null)
                     continue;
 
-                // Carry: if currently resting on a moving platform, ride
-                // along with its delta this step (any direction) before
-                // our own gravity/input movement is applied below.
-                //
-                // Deliberately re-checked geometrically every step (who's
-                // directly under my feet right now) instead of trusting
-                // last step's StandingOn flag - a flag surviving cleanly
-                // across the platform-advance loop above and this loop
-                // is an easy thing to break (it WAS broken - StandingOn
-                // was being cleared before anything read it). A fresh
-                // geometric check has no such cross-step dependency.
-                var supportingPlatform = FindSupportingPlatform(body);
-                if (supportingPlatform != null)
+                // ---- Determine which platform (if any) should carry this body ----
+                PhysicsBody carryingPlatform = null;
+
+                // If we were standing on a moving platform last frame, keep riding it.
+                if (body.StandingOn != null && body.StandingOn.IsMovingPlatform)
                 {
-                    Vector2 platformDelta = supportingPlatform.Position - supportingPlatform.PreviousPosition;
-                    body.Position += platformDelta;
+                    carryingPlatform = body.StandingOn;
+                }
+                else
+                {
+                    // Not on a moving platform – check for new support (static or one‑way).
+                    carryingPlatform = FindSupportingPlatform(body);
                 }
 
-                // Cleared here, re-set fresh by the sweep below - so
-                // IsGrounded/StandingOn (read by scripts across frames,
-                // e.g. coyote time) always reflect where the body actually
-                // ends up this step, independent of the carry check above.
+                // Clear ground state – will be reset by the sweep below if we land.
                 body.IsGrounded = false;
                 body.StandingOn = null;
 
+                // Apply the platform's movement delta (if any)
+                if (carryingPlatform != null)
+                {
+                    Vector2 platformDelta = carryingPlatform.Position - carryingPlatform.PreviousPosition;
+                    body.Position += platformDelta;
+
+                    // ---- FIX: Clamp Y to platform top if it's a vertical moving platform ----
+                    if (Math.Abs(platformDelta.Y) > 0.001f &&
+                        Math.Abs(body.Position.X - carryingPlatform.Position.X) <
+                            (body.Collider.Size.X / 2 + carryingPlatform.Collider.Size.X / 2))
+                    {
+                        float halfHeight = body.Collider.Size.Y / 2f;
+                        float targetY = carryingPlatform.Collider.Bounds.Top - halfHeight;
+                        // Only clamp if we're near the platform (prevents snapping from far away)
+                        if (Math.Abs(body.Position.Y - targetY) < 10f)
+                        {
+                            body.Position.Y = targetY;
+                        }
+                    }
+                }
+
+                // Apply gravity
                 if (body.UseGravity)
                     body.Velocity.Y += PhysicsSettings.Gravity * dt;
 
+                // Swept move along X and Y
                 Vector2 delta = body.Velocity * dt;
 
                 MoveAxisSwept(body, delta.X, horizontal: true);
                 MoveAxisSwept(body, delta.Y, horizontal: false);
             }
 
-            // Dynamic-vs-dynamic soft separation (e.g. two enemies
-            // overlapping, an enemy pushing the player) - deliberately
-            // still discrete overlap+push-apart. These are slow, mutual
-            // pushes, not fast-moving projectiles or falls, so tunneling
-            // isn't a realistic risk here, and a correct swept resolution
-            // between two simultaneously-moving bodies (relative-velocity
-            // sweep, deciding which one yields) is a lot more machinery
-            // for no practical gain in a 2D game.
+            // 4. Dynamic‑vs‑dynamic soft separation (enemies, player push, etc.)
             for (int i = 0; i < Bodies.Count; i++)
                 for (int j = i + 1; j < Bodies.Count; j++)
                     ResolveDynamicPair(Bodies[i], Bodies[j]);
 
+            // 5. Cache positions for next step (used by moving platforms and carry)
             foreach (var body in Bodies)
                 body.PreviousPosition = body.Position;
         }
@@ -122,7 +112,7 @@ namespace RoyaResan.Mono2d.Physics
             float halfHeight = body.Collider.Size.Y / 2f;
             float feetY = body.Position.Y + halfHeight;
 
-            const float tolerance = 12f;  // Increased significantly for vertical platforms + jumps
+            const float tolerance = 20f;  // Increased significantly for vertical platforms + jumps
 
             foreach (var other in Bodies)
             {
@@ -290,17 +280,19 @@ namespace RoyaResan.Mono2d.Physics
             bool hitSolid = false;
             PhysicsBody hitBody = null;
 
+            const float epsilon = 0.5f; // Tolerance for floating‑point rounding
+
             foreach (var other in Bodies)
             {
                 if (other == body || other.Collider == null || !other.IsStatic)
-                    continue; // only static geometry clips movement here - see ResolveDynamicPair for body-vs-body
+                    continue; // only static geometry clips movement
 
                 Rectangle otherBounds = other.Collider.Bounds;
 
                 if (other.Collider.IsOneWay)
                 {
                     if (horizontal)
-                        continue; // one-way platforms never block horizontal movement
+                        continue; // one‑way platforms never block horizontal movement
 
                     ResolveOneWaySwept(body, other, otherBounds, delta, ref allowedDelta);
                     continue;
@@ -332,7 +324,7 @@ namespace RoyaResan.Mono2d.Physics
                         }
                     }
                 }
-                else
+                else // vertical movement
                 {
                     bool xOverlaps = startPos.X + halfSize.X > otherBounds.Left &&
                                       startPos.X - halfSize.X < otherBounds.Right;
@@ -342,19 +334,32 @@ namespace RoyaResan.Mono2d.Physics
                     if (delta > 0f)
                     {
                         float startBottom = startPos.Y + halfSize.Y;
-                        if (startBottom <= otherBounds.Top && startBottom + delta > otherBounds.Top)
+
+                        // FIX: add epsilon tolerance so tiny floating‑point overlaps still snap to ground
+                        if (startBottom <= otherBounds.Top + epsilon && startBottom + delta > otherBounds.Top)
                         {
                             float clipped = otherBounds.Top - startBottom;
-                            if (clipped < allowedDelta) { allowedDelta = clipped; hitSolid = true; hitBody = other; }
+                            if (clipped < allowedDelta)
+                            {
+                                allowedDelta = clipped;
+                                hitSolid = true;
+                                hitBody = other;
+                            }
                         }
                     }
-                    else
+                    else // delta < 0 (moving upward)
                     {
                         float startTop = startPos.Y - halfSize.Y;
-                        if (startTop >= otherBounds.Bottom && startTop + delta < otherBounds.Bottom)
+
+                        if (startTop >= otherBounds.Bottom - epsilon && startTop + delta < otherBounds.Bottom)
                         {
                             float clipped = otherBounds.Bottom - startTop;
-                            if (clipped > allowedDelta) { allowedDelta = clipped; hitSolid = true; hitBody = other; }
+                            if (clipped > allowedDelta)
+                            {
+                                allowedDelta = clipped;
+                                hitSolid = true;
+                                hitBody = other;
+                            }
                         }
                     }
                 }
@@ -376,7 +381,7 @@ namespace RoyaResan.Mono2d.Physics
                     if (delta > 0f)
                     {
                         body.Velocity.Y = 0f;
-                        body.IsGrounded = true; // was falling, landed on top of something solid
+                        body.IsGrounded = true;
                         body.StandingOn = hitBody;
                     }
                     else
