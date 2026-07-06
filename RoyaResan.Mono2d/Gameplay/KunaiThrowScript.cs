@@ -82,7 +82,7 @@ public class KunaiThrowScript : Script
         Scene.AddBody(kunaiBody);
         Scene.AddHitbox(hitbox);
 
-        kunaiBody.Velocity = new Vector2(facingRight ? ThrowSpeed : -ThrowSpeed, -20f); // Slight upward velocity to avoid collision
+        kunaiBody.Velocity = new Vector2(facingRight ? ThrowSpeed : -ThrowSpeed, 0f);
 
         kunaiBody.AddScript(new ProjectileScript
         {

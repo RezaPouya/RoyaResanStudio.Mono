@@ -2,8 +2,6 @@ using RoyaResan.Mono2d.Combat;
 using RoyaResan.Mono2d.Core;
 using RoyaResan.Mono2d.Scripting;
 
-namespace RoyaResan.Mono2d.Gameplay;
-
 public class ProjectileScript : Script
 {
     public Scene Scene;
@@ -11,37 +9,73 @@ public class ProjectileScript : Script
 
     public float Lifetime = 3f;
     public float MaxDistance = 700f;
-
     public float StoppedSpeedThreshold = 2f;
+    public float BounceDespawnDelay = 0.1f;
 
     private Vector2 _spawnPosition;
     private float _age;
-    private bool _armed;
+    private bool _despawnQueued;
+    private float _despawnTimer;
 
     public override void Start()
     {
         _spawnPosition = Owner.Position;
-        Owner.IsProjectile = true; // Prevent being pushed by player/enemies
+        Owner.IsProjectile = true;
         Hitbox.BeginSwing();
         Hitbox.Active = true;
+
+        Scene.Combat.OnHit += OnHit;
+        Scene.Combat.OnBlocked += OnBlocked;
+    }
+
+    private void OnHit(Hitbox hitbox, Hurtbox hurtbox)
+    {
+        if (hitbox == Hitbox) QueueDespawn(0f);
+    }
+
+    private void OnBlocked(Hitbox hitbox, Hurtbox hurtbox)
+    {
+        if (hitbox == Hitbox)
+        {
+            Owner.Velocity = new Vector2(-Owner.Velocity.X * 0.5f, Owner.Velocity.Y);
+            QueueDespawn(BounceDespawnDelay);
+        }
+    }
+
+    private void QueueDespawn(float delay)
+    {
+        if (_despawnQueued) return;
+        _despawnQueued = true;
+        _despawnTimer = delay;
     }
 
     public override void Update(GameTime gameTime)
     {
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-        _age += dt;
 
-        if (!_armed && _age > 0.08f) // Slightly delayed armed to avoid spawn collision
-            _armed = true;
-
-        float traveled = Vector2.Distance(Owner.Position, _spawnPosition);
-        bool stoppedByWall = _armed && Math.Abs(Owner.Velocity.X) < StoppedSpeedThreshold;
-        bool landedOnGround = _armed && Owner.IsGrounded;
-
-        if (Hitbox.HasHitAnyTarget || _age >= Lifetime || traveled >= MaxDistance || stoppedByWall || landedOnGround)
+        if (_despawnQueued)
         {
-            Scene.RemoveHitbox(Hitbox);
-            Scene.RemoveBody(Owner);
+            _despawnTimer -= dt;
+            if (_despawnTimer <= 0f) { Cleanup(); return; }
         }
+
+        _age += dt;
+        float traveled = Vector2.Distance(Owner.Position, _spawnPosition);
+
+        bool stopped = Math.Abs(Owner.Velocity.X) < StoppedSpeedThreshold;
+        bool grounded = Owner.IsGrounded;
+
+        if (!_despawnQueued && (_age >= Lifetime || traveled >= MaxDistance || stopped || grounded))
+        {
+            Cleanup();
+        }
+    }
+
+    private void Cleanup()
+    {
+        Scene.Combat.OnHit -= OnHit;
+        Scene.Combat.OnBlocked -= OnBlocked;
+        Scene.RemoveHitbox(Hitbox);
+        Scene.RemoveBody(Owner);
     }
 }

@@ -6,15 +6,18 @@ namespace RoyaResan.Mono2d.Gameplay;
 
 /// <summary>
 /// Directional block for the Shield/Spear enemy:
-/// - While player is in front → blocks "Kunai"
-/// - Sword (melee) always goes through
-/// - Attack from behind or during Stagger → no blocking
+/// - Blocks "Kunai" only when the player is in front AND within BlockRange.
+/// - Sword (melee) always goes through.
+/// - Attack from behind or during Stagger → no blocking.
 /// </summary>
 public class ShieldBlockScript : Script
 {
     public EnemyFsm Fsm;
     public Hurtbox Hurtbox;
     public PhysicsBody Player;
+
+    /// <summary>Maximum distance at which the shield will block kunai.</summary>
+    public float BlockRange = 1f;
 
     private static readonly HashSet<string> BlockKunai = new() { "Kunai" };
 
@@ -31,9 +34,12 @@ public class ShieldBlockScript : Script
         }
 
         float toPlayer = Player.GlobalPosition.X - Owner.GlobalPosition.X;
-        bool playerInFront = Math.Sign(toPlayer) == Math.Sign(Fsm.FacingDirection.X);
+        float distance = Math.Abs(toPlayer);
 
-        // Block Kunai when player is in front, allow Sword
-        Hurtbox.BlockedTags = playerInFront ? BlockKunai : null;
+        // Only block if player is in front AND within range
+        bool playerInFront = Math.Sign(toPlayer) == Math.Sign(Fsm.FacingDirection.X);
+        bool inRange = distance <= BlockRange;
+
+        Hurtbox.BlockedTags = (playerInFront && inRange) ? BlockKunai : null;
     }
 }
