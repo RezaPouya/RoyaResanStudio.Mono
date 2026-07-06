@@ -21,6 +21,21 @@ namespace RoyaResan.Mono2d.Physics
         public bool IsMovingPlatform = false;
 
         /// <summary>
+        /// True for thrown/shot projectiles (kunai, enemy shots, rocks -
+        /// anything driven by ProjectileScript). Set automatically by
+        /// ProjectileScript.Start(). Excludes the body from
+        /// PhysicsWorld.ResolveDynamicPair, since a projectile is only
+        /// meant to interact via its Hitbox (damage), never via physical
+        /// push-apart collision. Without this, a projectile spawned right
+        /// next to its owner (or flying past another character) gets
+        /// shoved and has its velocity zeroed by the dynamic-vs-dynamic
+        /// pass, which ProjectileScript then reads as "stopped by a wall"
+        /// and despawns immediately - the classic "kunai disappears right
+        /// in front of the player" bug.
+        /// </summary>
+        public bool IsProjectile = false;
+
+        /// <summary>
         /// The body (usually a moving platform) this body landed on as of
         /// the last grounding check - null if not resting on anything. Set
         /// by PhysicsWorld alongside IsGrounded; used to carry riders when

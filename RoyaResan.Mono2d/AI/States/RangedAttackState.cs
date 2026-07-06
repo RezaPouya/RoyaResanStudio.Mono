@@ -72,6 +72,19 @@ public class RangedAttackState : EnemyState
         }
     }
 
+    /// <summary>
+    /// Zero horizontal velocity on leaving this state - matches
+    /// PatrolState.Exit(). Without this, an enemy that loses sight of the
+    /// target mid-retreat (Update above calls ChangeState("Idle")) carries
+    /// its retreat velocity straight into Idle, which never checks edges
+    /// or touches Velocity, and just keeps coasting until it walks off
+    /// whatever ledge it was carefully avoiding a moment ago.
+    /// </summary>
+    public override void Exit()
+    {
+        Machine.Body.Velocity = new Vector2(0, Machine.Body.Velocity.Y);
+    }
+
     private void Fire(Vector2 aimDir)
     { /* same as previous version */
         if (Machine.Scene == null) return;

@@ -89,7 +89,7 @@ public class World : Game
         _scene.Combat.OnHit += (hitbox, hurtbox) =>
         {
             if (hitbox.Tag == "Sword")
-                _scene.TriggerHitStop(0.05f);
+                _scene.TriggerHitStop(0.09f); // was 0.05f - 3 frames @60fps read as nothing; ~5-6 frames is the usual floor for a felt hit-stop
         };
     }
 
@@ -229,7 +229,7 @@ public class World : Game
             Owner = _player,
             Damage = 2,
             Tag = "Sword",
-            Knockback = new Vector2(180f, 0f),
+            Knockback = new Vector2(70f, 0f), // was 180f - enough to sell the hit without launching the enemy out of attack range
             SelfKnockback = new Vector2(20f, 0f) // small recoil - mostly for feel, not balance
         };
         _scene.AddHitbox(swordHitbox);

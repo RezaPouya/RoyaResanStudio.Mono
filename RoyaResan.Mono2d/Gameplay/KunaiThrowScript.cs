@@ -78,7 +78,7 @@ public class KunaiThrowScript : Script
     {
         bool facingRight = Movement?.FacingRight ?? true;
 
-        var kunaiBody = new PhysicsBody { UseGravity = false };
+        var kunaiBody = new PhysicsBody { UseGravity = false, Team = Owner.Team };
         kunaiBody.Position = Owner.Position + new Vector2(facingRight ? 35f : -35f, -8f);
 
         kunaiBody.Collider = new Collider { Owner = kunaiBody, Size = new Vector2(10f, 6f) };

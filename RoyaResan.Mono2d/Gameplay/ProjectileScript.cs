@@ -52,6 +52,7 @@ public class ProjectileScript : Script
     public override void Start()
     {
         _spawnPosition = Owner.Position;
+        Owner.IsProjectile = true; // excludes it from dynamic-vs-dynamic push resolution - see PhysicsBody.IsProjectile
         Hitbox.BeginSwing();
         Hitbox.Active = true;
     }

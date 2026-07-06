@@ -32,8 +32,11 @@ namespace RoyaResan.Mono2d.Physics
                 body.AdvanceKinematic(dt);
                 Vector2 delta = body.Position - oldPos;
 
-                if (delta != Vector2.Zero)
+                if (delta.X != 0f)
                     PushSideways(body, delta);
+
+                if (delta.Y != 0f)
+                    PushVertically(body, delta);
             }
 
             // INTEGRATION + SWEPT MOVE (per dynamic body, against static geometry)
@@ -191,6 +194,76 @@ namespace RoyaResan.Mono2d.Physics
                     float push = platformBounds.Left - bodyBounds.Right;
                     if (push < 0f)
                         body.Position.X += push;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Vertical counterpart to PushSideways - resolves a moving
+        /// platform's own Y motion against any non-rider body it moved
+        /// into this step, BEFORE that body's own gravity/sweep runs.
+        ///
+        /// Without this, a vertical (elevator-style) platform that moves
+        /// fast enough to already overlap a body by the time the normal
+        /// per-body swept pass runs will silently pass through it: the
+        /// swept check in MoveAxisSwept only reacts to the BODY's own
+        /// motion this step, not to the platform having moved into the
+        /// body first. This is what causes an elevator to "phase through"
+        /// a player standing above or below it instead of carrying/
+        /// blocking them - the missing vertical equivalent of the
+        /// horizontal crush-push.
+        /// </summary>
+        private void PushVertically(PhysicsBody platform, Vector2 delta)
+        {
+            Rectangle platformBounds = platform.Collider.Bounds; // already at post-move position
+
+            foreach (var body in Bodies)
+            {
+                if (body == platform || body.IsStatic || body.Collider == null)
+                    continue;
+
+                if (body.StandingOn == platform)
+                    continue; // rider - already carried in full by the Step loop above
+
+                Vector2 halfSize = body.Collider.Size / 2f;
+
+                bool xOverlaps = body.Position.X + halfSize.X > platformBounds.Left &&
+                                  body.Position.X - halfSize.X < platformBounds.Right;
+                if (!xOverlaps)
+                    continue;
+
+                Rectangle bodyBounds = body.Collider.Bounds;
+                if (!platformBounds.Intersects(bodyBounds))
+                    continue;
+
+                if (delta.Y < 0f)
+                {
+                    // Platform rising into the underside of a body above it:
+                    // push the body up so it ends up resting on top, exactly
+                    // as if it had landed there normally.
+                    float push = platformBounds.Top - bodyBounds.Bottom;
+                    if (push < 0f)
+                    {
+                        body.Position.Y += push;
+                        if (body.Velocity.Y > 0f)
+                            body.Velocity.Y = 0f;
+
+                        body.IsGrounded = true;
+                        body.StandingOn = platform;
+                    }
+                }
+                else
+                {
+                    // Platform descending into a body below it (e.g. one
+                    // standing under a descending elevator): push the body
+                    // down out of the way, same idea as hitting a ceiling.
+                    float push = platformBounds.Bottom - bodyBounds.Top;
+                    if (push > 0f)
+                    {
+                        body.Position.Y += push;
+                        if (body.Velocity.Y < 0f)
+                            body.Velocity.Y = 0f;
+                    }
                 }
             }
         }
@@ -381,6 +454,14 @@ namespace RoyaResan.Mono2d.Physics
             // Cells/Hades-style: same-faction actors don't collide, they
             // steer clear of each other and reserve attack slots).
             if (a.Team == "Enemy" && b.Team == "Enemy")
+                return;
+
+            // Projectiles (kunai, enemy shots, rocks) only interact via
+            // their Hitbox - never via physical push-apart. Without this,
+            // a projectile spawned next to its owner gets shoved and its
+            // velocity zeroed here, which ProjectileScript then reads as
+            // "stopped by a wall" and despawns on the spot.
+            if (a.IsProjectile || b.IsProjectile)
                 return;
 
             Rectangle A = a.Collider.Bounds;

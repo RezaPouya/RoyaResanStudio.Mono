@@ -1,16 +1,13 @@
-﻿namespace RoyaResan.Mono2d.Nodes;
+namespace RoyaResan.Mono2d.Nodes;
 
-public class WallNode : PhysicsBody
+/// <summary>
+/// Thin compatibility wrapper - equivalent to `new PlatformNode(oneWay: false)`.
+/// See PlatformNode for the adjustable version (set .OneWay per-instance
+/// instead of picking a class).
+/// </summary>
+public class WallNode : PlatformNode
 {
-    public WallNode()
+    public WallNode() : base(new Vector2(64, 64), oneWay: false)
     {
-        IsStatic = true;
-
-        Collider = new Collider
-        {
-            Owner = this,
-            Size = new Vector2(64, 64),
-            IsStatic = true
-        };
     }
 }
